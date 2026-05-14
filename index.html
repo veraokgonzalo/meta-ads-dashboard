@@ -328,9 +328,14 @@ async function fetchActiveCampaigns(accountId) {
 // Divide cada métrica numérica de un insight por N (para calcular promedios)
 function scaleInsights(ins, divisor) {
   if (!ins || divisor === 0) return null;
+  // CTR no se divide: la API ya lo devuelve como sum(clicks)/sum(impresiones)
+  // para el período completo, que es exactamente el promedio correcto.
+  const NO_SCALE = new Set(['ctr', 'date_start', 'date_stop', 'account_id']);
   const scaled = {};
   for (const [k, v] of Object.entries(ins)) {
-    if (k === 'actions') {
+    if (NO_SCALE.has(k)) {
+      scaled[k] = v;
+    } else if (k === 'actions') {
       scaled.actions = (v || []).map(a => ({
         ...a,
         value: String(parseFloat(a.value || 0) / divisor),
