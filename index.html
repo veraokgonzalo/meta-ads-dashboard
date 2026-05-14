@@ -261,22 +261,30 @@ function fmtCur(n, cur = 'ARS') {
   }
 }
 
-function deltaHtml(curr, prev, invertGood = false) {
+// colorMode: 'normal' (↑verde ↓rojo) | 'invert' (↑rojo ↓verde) | 'spend' (siempre gris, rojo solo si |Δ|>95%)
+function deltaHtml(curr, prev, colorMode = 'normal') {
   if (curr == null || prev == null || prev === 0) return '';
   const pct = ((curr - prev) / prev) * 100;
-  const good = invertGood ? pct < 0 : pct > 0;
-  const cls = Math.abs(pct) < 0.5 ? 'nt' : good ? 'up' : 'dn';
   const arrowUp = `<svg width="7" height="7" viewBox="0 0 7 7" fill="none"><path d="M3.5 1L6.5 5.5H.5L3.5 1Z" fill="currentColor"/></svg>`;
   const arrowDn = `<svg width="7" height="7" viewBox="0 0 7 7" fill="none"><path d="M3.5 6L6.5 1.5H.5L3.5 6Z" fill="currentColor"/></svg>`;
+  let cls;
+  if (colorMode === 'spend') {
+    cls = Math.abs(pct) > 95 ? 'dn' : 'nt';
+  } else if (colorMode === 'invert') {
+    cls = Math.abs(pct) < 0.5 ? 'nt' : pct < 0 ? 'up' : 'dn';
+  } else {
+    cls = Math.abs(pct) < 0.5 ? 'nt' : pct > 0 ? 'up' : 'dn';
+  }
   const sign = pct > 0 ? '+' : '';
   return `<span class="md ${cls}">${pct > 0 ? arrowUp : arrowDn}${sign}${fmtN(pct, 1)}&nbsp;%</span>`;
 }
 
-function metricCell(curr, prev, fmt, invertGood = false) {
-  if (curr == null) return `<td class="mc"><span class="na">—</span></td>`;
+function metricCell(curr, prev, fmt, colorMode = 'normal') {
+  // null se muestra como 0, no como — para que sea visible la ausencia de datos
+  const val = curr ?? 0;
   return `<td class="mc">
-    <span class="mv">${fmt(curr)}</span>
-    ${deltaHtml(curr, prev, invertGood)}
+    <span class="mv">${fmt(val)}</span>
+    ${deltaHtml(val, prev, colorMode)}
   </td>`;
 }
 
@@ -534,7 +542,7 @@ async function loadDash() {
           <div class="acct-id">${acct.id}</div>
         </td>
         ${campHtml}
-        ${metricCell(cSpend,  pSpend,  v => fmtCur(v, currency), true)}
+        ${metricCell(cSpend,  pSpend,  v => fmtCur(v, currency), 'spend')}
         ${metricCell(cConv,   pConv,   v => fmtN(v))}
         ${metricCell(cImpr,   pImpr,   v => fmtN(v))}
         ${metricCell(cClicks, pClicks, v => fmtN(v))}
