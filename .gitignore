@@ -1,0 +1,13 @@
+# Token — nunca subir al repo
+.env
+
+# Python
+__pycache__/
+*.pyc
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Claude
+.claude/

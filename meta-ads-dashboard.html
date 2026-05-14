@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#ffffff" />
+  <title>Meta Ads · Reporte Diario</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --black:#171717; --white:#ffffff;
+      --g100:#fafafa; --g200:#f5f5f5; --g300:#e5e5e5;
+      --g400:#a3a3a3; --g500:#737373; --g600:#525252;
+      --blue:#0a72ef; --red:#ff5b4f; --green:#16a34a;
+      --s-card:0px 0px 0px 1px rgba(0,0,0,0.08),0px 2px 4px rgba(0,0,0,0.04),inset 0px 0px 0px 1px #fafafa;
+      --s-ring:0px 0px 0px 1px rgba(0,0,0,0.08);
+    }
+    html { color-scheme: light; }
+    body { font-family:'Geist',system-ui,sans-serif; font-feature-settings:"liga" 1; background:var(--white); color:var(--black); min-height:100vh; -webkit-font-smoothing:antialiased; }
+
+    /* Topbar */
+    .topbar { height:52px; display:flex; align-items:center; justify-content:space-between; padding:0 28px; box-shadow:0 1px 0 rgba(0,0,0,0.06); position:sticky; top:0; background:rgba(255,255,255,0.92); backdrop-filter:blur(12px); z-index:10; }
+    .tl { display:flex; align-items:center; gap:10px; }
+    .logo { width:26px; height:26px; background:var(--black); border-radius:6px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .topbar-title { font-size:13px; font-weight:600; letter-spacing:-0.2px; }
+    .sep { width:1px; height:18px; background:var(--g300); }
+    .topbar-sub { font-size:12px; color:var(--g500); font-variant-numeric:tabular-nums; }
+    .tr { display:flex; align-items:center; gap:8px; }
+    .chip { font-size:11px; font-weight:600; padding:2px 9px; border-radius:100px; background:var(--g200); color:var(--g600); }
+    .chip.live { background:#dcfce7; color:#15803d; }
+
+    /* Buttons */
+    .btn { display:inline-flex; align-items:center; justify-content:center; gap:6px; height:36px; padding:0 14px; font-family:'Geist',sans-serif; font-size:13px; font-weight:600; border:none; border-radius:8px; cursor:pointer; transition:opacity 0.1s,transform 0.1s; white-space:nowrap; }
+    .btn:active { transform:scale(0.97); }
+    .btn:disabled { opacity:0.45; cursor:not-allowed; }
+    .btn-primary { background:var(--black); color:var(--white); }
+    .btn-primary:hover:not(:disabled) { opacity:0.82; }
+    .btn-ghost { background:transparent; color:var(--g600); box-shadow:var(--s-ring); height:32px; font-size:12px; }
+    .btn-ghost:hover:not(:disabled) { background:var(--g100); }
+
+    /* Spinner */
+    .spin { width:13px; height:13px; border:2px solid rgba(255,255,255,0.3); border-top-color:#fff; border-radius:50%; animation:rot 0.6s linear infinite; flex-shrink:0; }
+    .spin.dark { border-color:rgba(0,0,0,0.1); border-top-color:var(--black); }
+    @keyframes rot { to { transform:rotate(360deg); } }
+
+    /* Auth */
+    #auth { padding:64px 28px; }
+    .auth-card { max-width:460px; margin:0 auto; box-shadow:var(--s-card); border-radius:14px; padding:32px; }
+    .auth-eyebrow { font-size:11px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:var(--g400); margin-bottom:6px; }
+    .auth-title { font-size:22px; font-weight:700; letter-spacing:-1.1px; text-wrap:balance; margin-bottom:4px; }
+    .auth-desc { font-size:13px; color:var(--g500); line-height:1.55; margin-bottom:24px; }
+    .field label { display:block; font-size:13px; font-weight:500; margin-bottom:6px; }
+    .field input { width:100%; height:40px; padding:0 12px; font-family:'Geist Mono',monospace; font-size:13px; color:var(--black); background:var(--white); box-shadow:var(--s-ring); border:none; border-radius:8px; outline:none; -webkit-appearance:none; transition:box-shadow 0.15s; }
+    .field input::placeholder { color:var(--g400); }
+    .field input:focus { box-shadow:0 0 0 1px rgba(0,0,0,0.12),0 0 0 3px rgba(10,114,239,0.18); }
+    .field-hint { font-size:11px; color:var(--g400); margin-top:5px; line-height:1.45; }
+    .auth-err { display:none; background:#fef2f2; color:#7f1d1d; font-size:13px; border-radius:8px; padding:10px 14px; margin-bottom:14px; box-shadow:0 0 0 1px rgba(239,68,68,0.15); line-height:1.5; }
+
+    /* Page */
+    .page { max-width:1020px; margin:0 auto; padding:36px 28px 72px; }
+    .dash-header { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:28px; flex-wrap:wrap; }
+    .dash-eyebrow { font-size:11px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:var(--g400); margin-bottom:6px; }
+    .dash-title { font-size:24px; font-weight:700; letter-spacing:-1.3px; line-height:1.15; text-wrap:balance; }
+    .dash-sub { font-size:13px; color:var(--g500); margin-top:4px; }
+    .dash-actions { display:flex; align-items:center; gap:8px; padding-top:4px; }
+
+    /* Alert */
+    .alert { padding:12px 16px; border-radius:8px; font-size:13px; line-height:1.5; margin-bottom:20px; }
+    .alert.err { background:#fef2f2; color:#7f1d1d; box-shadow:0 0 0 1px rgba(239,68,68,0.15); }
+
+    /* Table */
+    .table-card { box-shadow:var(--s-card); border-radius:12px; overflow-x:auto; background:var(--white); -webkit-overflow-scrolling:touch; }
+    table { width:100%; border-collapse:collapse; min-width:740px; }
+    thead th { padding:10px 16px; font-size:10.5px; font-weight:600; letter-spacing:0.07em; text-transform:uppercase; color:var(--g400); background:var(--g100); text-align:left; white-space:nowrap; border-bottom:1px solid rgba(0,0,0,0.05); }
+    thead th.r { text-align:right; }
+    tbody tr { border-bottom:1px solid rgba(0,0,0,0.04); transition:background 0.1s; }
+    tbody tr:last-child { border-bottom:none; }
+    tbody tr:hover { background:var(--g100); }
+    td { padding:13px 16px; vertical-align:middle; }
+    .acct-name { font-size:13px; font-weight:600; letter-spacing:-0.2px; }
+    .acct-id { font-family:'Geist Mono',monospace; font-size:10px; color:var(--g400); margin-top:2px; }
+    .mc { text-align:right; }
+    .mv { font-family:'Geist Mono',monospace; font-size:13px; font-weight:500; font-variant-numeric:tabular-nums; display:block; }
+    .md { display:inline-flex; align-items:center; gap:2px; font-size:10.5px; font-weight:500; font-variant-numeric:tabular-nums; margin-top:2px; white-space:nowrap; }
+    .md.up { color:var(--green); }
+    .md.dn { color:var(--red); }
+    .md.nt { color:var(--g400); }
+    .na { font-size:12px; color:var(--g400); display:block; text-align:right; }
+    .no-act .acct-name { color:var(--g500); font-weight:500; }
+
+    /* Skeleton */
+    .sk { background:linear-gradient(90deg,var(--g200) 25%,var(--g100) 50%,var(--g200) 75%); background-size:200% 100%; animation:sh 1.4s infinite; border-radius:4px; display:inline-block; }
+    @keyframes sh { to { background-position:-200% 0; } }
+
+    /* Segmented control */
+    .seg { display:inline-flex; background:var(--g200); border-radius:8px; padding:3px; gap:2px; }
+    .seg-btn { height:28px; padding:0 12px; font-family:'Geist',sans-serif; font-size:12px; font-weight:500; border:none; border-radius:6px; cursor:pointer; background:transparent; color:var(--g500); transition:background 0.12s,color 0.12s,box-shadow 0.12s; white-space:nowrap; }
+    .seg-btn:hover:not(.active) { color:var(--black); }
+    .seg-btn.active { background:var(--white); color:var(--black); font-weight:600; box-shadow:0 1px 3px rgba(0,0,0,0.1),0 0 0 1px rgba(0,0,0,0.06); }
+
+    /* Campaign dot cell */
+    .camp-cell { display:flex; align-items:center; gap:7px; }
+    .dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+    .dot.green { background:var(--green); box-shadow:0 0 0 2px rgba(22,163,74,0.2); }
+    .dot.red   { background:var(--red);   box-shadow:0 0 0 2px rgba(255,91,79,0.2); }
+    .camp-count { font-family:'Geist Mono',monospace; font-size:12px; font-weight:500; font-variant-numeric:tabular-nums; }
+    .camp-none  { font-size:11px; color:var(--red); }
+
+    /* Note */
+    .note { margin-top:14px; display:flex; flex-direction:column; gap:3px; }
+    .note p { font-size:11px; color:var(--g400); line-height:1.55; }
+    .note strong { color:var(--g600); font-weight:500; }
+    .note code { font-family:'Geist Mono',monospace; font-size:10px; background:var(--g200); padding:1px 4px; border-radius:3px; }
+
+    @media (max-width:680px) {
+      .topbar,.page,#auth { padding-left:16px; padding-right:16px; }
+      .dash-title { font-size:20px; }
+    }
+    @media (prefers-reduced-motion:reduce) { *,.spin { animation:none !important; transition:none !important; } }
+  </style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="tl">
+    <div class="logo" aria-hidden="true">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1.5L12.5 11H1.5L7 1.5Z" fill="white"/></svg>
+    </div>
+    <span class="topbar-title">Meta Ads Monitor</span>
+    <div class="sep" aria-hidden="true"></div>
+    <span class="topbar-sub" id="topbar-date">—</span>
+  </div>
+  <div class="tr">
+    <span class="chip" id="status-chip">Desconectado</span>
+    <button class="btn btn-ghost" id="logout-btn" onclick="logout()" style="display:none" aria-label="Cerrar sesión">Salir</button>
+  </div>
+</header>
+
+<!-- Auth (solo si no hay token en .env ni en localStorage) -->
+<section id="auth">
+  <div class="auth-card">
+    <p class="auth-eyebrow">Configuración</p>
+    <h1 class="auth-title">Conectá tu cuenta de Meta Ads</h1>
+    <p class="auth-desc">Pegá tu token de acceso de larga duración. Se guarda solo en tu navegador.</p>
+    <div class="auth-err" id="auth-err"></div>
+    <form onsubmit="connect(event)" autocomplete="off">
+      <div class="field" style="margin-bottom:16px">
+        <label for="tk">Access Token</label>
+        <input id="tk" type="password" placeholder="EAAx…" required spellcheck="false" />
+        <p class="field-hint">Token de usuario de larga duración (60&nbsp;días). Si corrés el archivo via <code>server.py</code> se usa el del <code>.env</code> automáticamente.</p>
+      </div>
+      <button class="btn btn-primary" type="submit" id="connect-btn" style="width:100%">
+        Ver mis campañas
+      </button>
+    </form>
+  </div>
+</section>
+
+<!-- Dashboard -->
+<main id="dash" style="display:none">
+  <div class="page">
+    <div class="dash-header">
+      <div>
+        <p class="dash-eyebrow">Reporte diario</p>
+        <h2 class="dash-title" id="dash-title">Cargando…</h2>
+        <p class="dash-sub" id="dash-sub"></p>
+      </div>
+      <div class="dash-actions">
+        <div class="seg" role="group" aria-label="Modo de comparación">
+          <button class="seg-btn active" id="mode-today" onclick="setMode('today_vs_yesterday')">
+            Hoy vs Ayer
+          </button>
+          <button class="seg-btn" id="mode-avg" onclick="setMode('yesterday_vs_avg7')">
+            Ayer vs Promedio 7&nbsp;días
+          </button>
+        </div>
+        <button class="btn btn-ghost" onclick="loadDash()" id="refresh-btn" aria-label="Actualizar datos">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true"><path d="M11.5 6.5A5 5 0 1 1 6.5 1.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M11.5 1.5v3h-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Actualizar
+        </button>
+      </div>
+    </div>
+
+    <div id="alert-area"></div>
+
+    <div class="table-card">
+      <table>
+        <thead>
+          <tr>
+            <th>Cuenta</th>
+            <th>Campañas&nbsp;Activas</th>
+            <th class="r">Importe&nbsp;Gastado</th>
+            <th class="r">Conv.&nbsp;Comenzadas</th>
+            <th class="r">Impresiones</th>
+            <th class="r">Clics&nbsp;(todos)</th>
+            <th class="r">CTR&nbsp;(todos)</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+
+    <div class="note">
+      <p><strong>Campañas Activas</strong> — Campañas con <code>effective_status = ACTIVE</code> en este momento.</p>
+      <p><strong>Conv. Comenzadas</strong> — <code>messaging_conversation_started_7d</code>: conversaciones iniciadas desde el anuncio vía Messenger o Instagram&nbsp;DM.</p>
+      <p id="note-dates"></p>
+    </div>
+  </div>
+</main>
+
+<script>
+const API = 'https://graph.facebook.com/v21.0';
+let TOKEN = '';
+let MODE  = 'today_vs_yesterday'; // 'today_vs_yesterday' | 'yesterday_vs_avg7'
+
+function setMode(m) {
+  MODE = m;
+  document.getElementById('mode-today').classList.toggle('active', m === 'today_vs_yesterday');
+  document.getElementById('mode-avg').classList.toggle('active',   m === 'yesterday_vs_avg7');
+  loadDash();
+}
+
+// ── Fechas ────────────────────────────────────────────────────────────────────
+function isoDate(d) { return d.toISOString().slice(0, 10); }
+
+function daysAgo(n) { const d = new Date(); d.setDate(d.getDate() - n); return isoDate(d); }
+function getToday()     { return daysAgo(0); }
+function getYesterday() { return daysAgo(1); }
+
+function humanDate(iso) {
+  const [y, m, day] = iso.split('-');
+  const months = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  return `${parseInt(day)} ${months[parseInt(m)-1]}`;
+}
+
+// ── Números ───────────────────────────────────────────────────────────────────
+function toNum(v) {
+  if (v == null || v === '' || v === 'Not available') return null;
+  const n = parseFloat(String(v).replace(/[^\d.\-]/g, ''));
+  return isNaN(n) ? null : n;
+}
+
+function fmtN(n, dec = 0) {
+  if (n == null) return null;
+  return n.toLocaleString('es-AR', { minimumFractionDigits: dec, maximumFractionDigits: dec });
+}
+
+function fmtCur(n, cur = 'ARS') {
+  if (n == null) return null;
+  try {
+    return new Intl.NumberFormat('es-AR', {
+      style: 'currency', currency: cur,
+      minimumFractionDigits: 2, maximumFractionDigits: 2
+    }).format(n);
+  } catch {
+    return `${cur} ${fmtN(n, 2)}`;
+  }
+}
+
+function deltaHtml(curr, prev, invertGood = false) {
+  if (curr == null || prev == null || prev === 0) return '';
+  const pct = ((curr - prev) / prev) * 100;
+  const good = invertGood ? pct < 0 : pct > 0;
+  const cls = Math.abs(pct) < 0.5 ? 'nt' : good ? 'up' : 'dn';
+  const arrowUp = `<svg width="7" height="7" viewBox="0 0 7 7" fill="none"><path d="M3.5 1L6.5 5.5H.5L3.5 1Z" fill="currentColor"/></svg>`;
+  const arrowDn = `<svg width="7" height="7" viewBox="0 0 7 7" fill="none"><path d="M3.5 6L6.5 1.5H.5L3.5 6Z" fill="currentColor"/></svg>`;
+  const sign = pct > 0 ? '+' : '';
+  return `<span class="md ${cls}">${pct > 0 ? arrowUp : arrowDn}${sign}${fmtN(pct, 1)}&nbsp;%</span>`;
+}
+
+function metricCell(curr, prev, fmt, invertGood = false) {
+  if (curr == null) return `<td class="mc"><span class="na">—</span></td>`;
+  return `<td class="mc">
+    <span class="mv">${fmt(curr)}</span>
+    ${deltaHtml(curr, prev, invertGood)}
+  </td>`;
+}
+
+function extractAction(ins, type) {
+  const arr = ins?.actions;
+  if (!Array.isArray(arr)) return null;
+  const a = arr.find(x => x.action_type === type);
+  return a ? toNum(a.value) : null;
+}
+
+// ── API ───────────────────────────────────────────────────────────────────────
+async function apiFetch(path, params = {}) {
+  params.access_token = TOKEN;
+  const url = `${API}/${path}?${new URLSearchParams(params)}`;
+  const res = await fetch(url);
+  const json = await res.json();
+  if (json.error) throw new Error(`${json.error.message} (código ${json.error.code})`);
+  return json;
+}
+
+async function fetchInsights(accountId, since, until) {
+  const fields = 'spend,impressions,clicks,ctr,actions';
+  try {
+    const r = await apiFetch(`act_${accountId}/insights`, {
+      fields,
+      time_range: JSON.stringify({ since, until }),
+      level: 'account',
+    });
+    return r.data?.[0] ?? null;
+  } catch (e) {
+    console.warn(`Insights error para ${accountId}:`, e.message);
+    return null;
+  }
+}
+
+async function fetchActiveCampaigns(accountId) {
+  try {
+    const r = await apiFetch(`act_${accountId}/campaigns`, {
+      effective_status: JSON.stringify(['ACTIVE']),
+      fields: 'id',
+      limit: 100,
+    });
+    return (r.data || []).length;
+  } catch {
+    return null;
+  }
+}
+
+// Divide cada métrica numérica de un insight por N (para calcular promedios)
+function scaleInsights(ins, divisor) {
+  if (!ins || divisor === 0) return null;
+  const scaled = {};
+  for (const [k, v] of Object.entries(ins)) {
+    if (k === 'actions') {
+      scaled.actions = (v || []).map(a => ({
+        ...a,
+        value: String(parseFloat(a.value || 0) / divisor),
+      }));
+    } else {
+      const n = parseFloat(v);
+      scaled[k] = isNaN(n) ? v : String(n / divisor);
+    }
+  }
+  return scaled;
+}
+
+// ── Auth ──────────────────────────────────────────────────────────────────────
+async function connect(e) {
+  e.preventDefault();
+  const btn = document.getElementById('connect-btn');
+  const errEl = document.getElementById('auth-err');
+  errEl.style.display = 'none';
+
+  TOKEN = document.getElementById('tk').value.trim();
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span> Verificando…';
+
+  try {
+    await apiFetch('me', { fields: 'name' });
+    localStorage.setItem('mam_token', TOKEN);
+    showDash();
+    await loadDash();
+  } catch (ex) {
+    errEl.textContent = `No se pudo conectar: ${ex.message}`;
+    errEl.style.display = '';
+    btn.disabled = false;
+    btn.textContent = 'Ver mis campañas';
+  }
+}
+
+function logout() {
+  TOKEN = '';
+  localStorage.removeItem('mam_token');
+  location.reload();
+}
+
+function showDash() {
+  document.getElementById('auth').style.display = 'none';
+  document.getElementById('dash').style.display = '';
+  document.getElementById('status-chip').textContent = 'Conectado';
+  document.getElementById('status-chip').className = 'chip live';
+  document.getElementById('logout-btn').style.display = '';
+}
+
+// ── Dashboard ─────────────────────────────────────────────────────────────────
+async function loadDash() {
+  const today     = getToday();
+  const yesterday = getYesterday();
+
+  // Definir períodos según modo
+  let mainSince, mainUntil, compLabel, titleText, subText, noteText;
+
+  if (MODE === 'today_vs_yesterday') {
+    mainSince  = today;
+    mainUntil  = today;
+    titleText  = `Hoy, ${humanDate(today)}`;
+    compLabel  = `vs ayer (${humanDate(yesterday)})`;
+    subText    = `${compLabel} · Cargando…`;
+    noteText   = `Período actual: ${today} · Comparado: ${yesterday} · Graph API v21.0`;
+    document.getElementById('topbar-date').textContent = `Hoy ${humanDate(today)} vs ${humanDate(yesterday)}`;
+  } else {
+    mainSince  = yesterday;
+    mainUntil  = yesterday;
+    compLabel  = `vs promedio últimos 7 días`;
+    titleText  = `Ayer, ${humanDate(yesterday)}`;
+    subText    = `${compLabel} · Cargando…`;
+    noteText   = `Período actual: ${yesterday} · Comparado: promedio ${humanDate(daysAgo(8))}–${humanDate(daysAgo(2))} · Graph API v21.0`;
+    document.getElementById('topbar-date').textContent = `Ayer ${humanDate(yesterday)} vs prom. 7d`;
+  }
+
+  document.getElementById('dash-title').textContent = titleText;
+  document.getElementById('dash-sub').textContent   = subText;
+  document.getElementById('note-dates').textContent = noteText;
+
+  const btn = document.getElementById('refresh-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin dark"></span> Actualizando…';
+
+  const tbody = document.getElementById('tbody');
+  tbody.innerHTML = Array(4).fill(0).map(() => `
+    <tr>
+      <td>
+        <div class="sk" style="width:110px;height:13px;margin-bottom:5px"></div>
+        <div class="sk" style="width:80px;height:10px"></div>
+      </td>
+      <td><div class="sk" style="width:24px;height:24px;border-radius:50%"></div></td>
+      ${Array(5).fill(`
+        <td class="mc">
+          <div class="sk" style="width:68px;height:13px;margin-left:auto;margin-bottom:4px"></div>
+          <div class="sk" style="width:38px;height:10px;margin-left:auto"></div>
+        </td>`).join('')}
+    </tr>`).join('');
+
+  document.getElementById('alert-area').innerHTML = '';
+
+  try {
+    // Todas las cuentas del usuario
+    const acctRes = await apiFetch('me/adaccounts', {
+      fields: 'id,name,account_status,currency',
+      limit: 100,
+    });
+
+    const accounts = (acctRes.data || []).filter(a => {
+      // account_status: 1=ACTIVE, 2=DISABLED, 3=UNSETTLED …
+      return parseInt(a.account_status) === 1;
+    });
+
+    if (!accounts.length) {
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--g400);font-size:13px;">No se encontraron cuentas publicitarias activas.</td></tr>`;
+      return;
+    }
+
+    // Insights + campañas activas en paralelo para todas las cuentas
+    const data = await Promise.all(accounts.map(async acct => {
+      const numId    = acct.id.replace('act_', '');
+      const currency = acct.currency || 'USD';
+
+      // Período de comparación según modo
+      let ins_main, insComp;
+      if (MODE === 'today_vs_yesterday') {
+        [ins_main, insComp] = await Promise.all([
+          fetchInsights(numId, mainSince, mainUntil),
+          fetchInsights(numId, yesterday, yesterday),
+        ]);
+      } else {
+        // Ayer vs promedio diario de los 7 días previos (daysAgo(8) → daysAgo(2))
+        let ins_7d;
+        [ins_main, ins_7d] = await Promise.all([
+          fetchInsights(numId, mainSince, mainUntil),
+          fetchInsights(numId, daysAgo(8), daysAgo(2)),
+        ]);
+        insComp = scaleInsights(ins_7d, 7);
+      }
+
+      const [, activeCamps] = await Promise.all([
+        Promise.resolve(null),
+        fetchActiveCampaigns(numId),
+      ]);
+
+      return {
+        acct, currency, activeCamps,
+        cSpend:  toNum(ins_main?.spend),
+        pSpend:  toNum(insComp?.spend),
+        cImpr:   toNum(ins_main?.impressions),
+        pImpr:   toNum(insComp?.impressions),
+        cClicks: toNum(ins_main?.clicks),
+        pClicks: toNum(insComp?.clicks),
+        cCtr:    toNum(ins_main?.ctr),
+        pCtr:    toNum(insComp?.ctr),
+        cConv:   extractAction(ins_main, 'onsite_conversion.messaging_conversation_started_7d'),
+        pConv:   extractAction(insComp,  'onsite_conversion.messaging_conversation_started_7d'),
+      };
+    }));
+
+    // Ordenar: cuentas con actividad primero, descendente por gasto; sin actividad al final
+    data.sort((a, b) => {
+      const aHas = a.cSpend != null, bHas = b.cSpend != null;
+      if (aHas && !bHas) return -1;
+      if (!aHas && bHas) return 1;
+      return (b.cSpend ?? 0) - (a.cSpend ?? 0);
+    });
+
+    const noActLabel = MODE === 'today_vs_yesterday' ? 'Sin actividad hoy' : 'Sin actividad ayer';
+
+    const rows = data.map(({ acct, currency, activeCamps, cSpend, pSpend, cImpr, pImpr, cClicks, pClicks, cCtr, pCtr, cConv, pConv }) => {
+      const hasData = cSpend != null || cImpr != null;
+      const name    = esc(acct.name || acct.id);
+
+      // Celda de campañas activas
+      const campHtml = activeCamps == null
+        ? `<td><span style="color:var(--g400);font-size:12px;">—</span></td>`
+        : activeCamps > 0
+          ? `<td><div class="camp-cell"><span class="dot green"></span><span class="camp-count">${activeCamps}</span></div></td>`
+          : `<td><div class="camp-cell"><span class="dot red"></span><span class="camp-none">No tiene campañas activas</span></div></td>`;
+
+      if (!hasData) {
+        return `<tr class="no-act">
+          <td>
+            <div class="acct-name">${name}</div>
+            <div class="acct-id">${acct.id}</div>
+          </td>
+          ${campHtml}
+          <td colspan="5" style="color:var(--g400);font-size:12px;">${noActLabel}</td>
+        </tr>`;
+      }
+
+      return `<tr>
+        <td>
+          <div class="acct-name">${name}</div>
+          <div class="acct-id">${acct.id}</div>
+        </td>
+        ${campHtml}
+        ${metricCell(cSpend,  pSpend,  v => fmtCur(v, currency), true)}
+        ${metricCell(cConv,   pConv,   v => fmtN(v))}
+        ${metricCell(cImpr,   pImpr,   v => fmtN(v))}
+        ${metricCell(cClicks, pClicks, v => fmtN(v))}
+        ${metricCell(cCtr,    pCtr,    v => fmtN(v, 2) + '&nbsp;%', true)}
+      </tr>`;
+    });
+
+    tbody.innerHTML = rows.join('');
+
+    const active = rows.filter(r => !r.includes(noActLabel)).length;
+    document.getElementById('dash-sub').textContent =
+      `${compLabel} · ${active} de ${accounts.length} cuentas con actividad · ` +
+      `Actualizado ${new Date().toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'})}`;
+
+  } catch (ex) {
+    document.getElementById('alert-area').innerHTML =
+      `<div class="alert err">Error al cargar datos: ${ex.message}</div>`;
+    tbody.innerHTML = '';
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true"><path d="M11.5 6.5A5 5 0 1 1 6.5 1.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M11.5 1.5v3h-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Actualizar`;
+  }
+}
+
+function esc(s) {
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Inicio automático ─────────────────────────────────────────────────────────
+(function init() {
+  // Prioridad: token inyectado por server.py > localStorage > pantalla de login
+  const envToken = (typeof window.__META_TOKEN__ === 'string' && window.__META_TOKEN__)
+    ? window.__META_TOKEN__ : null;
+  const savedToken = localStorage.getItem('mam_token');
+  const token = envToken || savedToken;
+
+  if (token) {
+    TOKEN = token;
+    showDash();
+    loadDash();
+  }
+})();
+</script>
+</body>
+</html>
