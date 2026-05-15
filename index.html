@@ -261,12 +261,22 @@ function fmtCur(n, cur = 'ARS') {
   }
 }
 
-// colorMode: 'normal' (↑verde ↓rojo) | 'invert' (↑rojo ↓verde) | 'spend' (siempre gris, rojo solo si |Δ|>95%)
+// colorMode: 'normal' (↑verde ↓rojo) | 'invert' (↑rojo ↓verde) | 'spend' (gris, rojo si |Δ|>95%) | 'pp' (puntos porcentuales absolutos)
 function deltaHtml(curr, prev, colorMode = 'normal') {
-  if (curr == null || prev == null || prev === 0) return '';
-  const pct = ((curr - prev) / prev) * 100;
+  if (curr == null || prev == null) return '';
   const arrowUp = `<svg width="7" height="7" viewBox="0 0 7 7" fill="none"><path d="M3.5 1L6.5 5.5H.5L3.5 1Z" fill="currentColor"/></svg>`;
   const arrowDn = `<svg width="7" height="7" viewBox="0 0 7 7" fill="none"><path d="M3.5 6L6.5 1.5H.5L3.5 6Z" fill="currentColor"/></svg>`;
+
+  // Modo puntos porcentuales: diferencia absoluta, sin dividir
+  if (colorMode === 'pp') {
+    const diff = curr - prev;
+    const cls = Math.abs(diff) < 0.01 ? 'nt' : diff > 0 ? 'up' : 'dn';
+    const sign = diff > 0 ? '+' : '';
+    return `<span class="md ${cls}">${diff > 0 ? arrowUp : arrowDn}${sign}${fmtN(diff, 2)}&nbsp;pp</span>`;
+  }
+
+  if (prev === 0) return '';
+  const pct = ((curr - prev) / prev) * 100;
   let cls;
   if (colorMode === 'spend') {
     cls = Math.abs(pct) > 95 ? 'dn' : 'nt';
@@ -546,7 +556,7 @@ async function loadDash() {
         ${metricCell(cConv,   pConv,   v => fmtN(v))}
         ${metricCell(cImpr,   pImpr,   v => fmtN(v))}
         ${metricCell(cClicks, pClicks, v => fmtN(v))}
-        ${metricCell(cCtr,    pCtr,    v => fmtN(v, 2) + '&nbsp;%')}
+        ${metricCell(cCtr,    pCtr,    v => fmtN(v, 2) + '&nbsp;%', 'pp')}
       </tr>`;
     });
 
