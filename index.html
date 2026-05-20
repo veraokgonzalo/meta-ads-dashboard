@@ -79,7 +79,7 @@
     thead th.r { text-align:right; }
     tbody tr { border-bottom:1px solid rgba(0,0,0,0.04); transition:background 0.1s; }
     tbody tr:last-child { border-bottom:none; }
-    tbody tr:hover { background:var(--g100); }
+    tbody tr:not(.expand-row):hover { background:var(--g100); }
     td { padding:13px 16px; vertical-align:middle; }
     .acct-name { font-size:13px; font-weight:600; letter-spacing:-0.2px; }
     .acct-id { font-family:'Geist Mono',monospace; font-size:10px; color:var(--g400); margin-top:2px; }
@@ -101,6 +101,21 @@
     .seg-btn { height:28px; padding:0 12px; font-family:'Geist',sans-serif; font-size:12px; font-weight:500; border:none; border-radius:6px; cursor:pointer; background:transparent; color:var(--g500); transition:background 0.12s,color 0.12s,box-shadow 0.12s; white-space:nowrap; }
     .seg-btn:hover:not(.active) { color:var(--black); }
     .seg-btn.active { background:var(--white); color:var(--black); font-weight:600; box-shadow:0 1px 3px rgba(0,0,0,0.1),0 0 0 1px rgba(0,0,0,0.06); }
+
+    /* Expandable rows */
+    .acct-row { cursor:pointer; user-select:none; }
+    .chevron { display:inline-block; transition:transform 0.18s; color:var(--g400); vertical-align:middle; margin-left:5px; flex-shrink:0; }
+    .acct-row.open .chevron { transform:rotate(180deg); }
+    .expand-row { display:none; }
+    .expand-row.open { display:table-row; }
+    .expand-row > td { padding:0; background:var(--g100); border-bottom:1px solid rgba(0,0,0,0.05); }
+    .inner-table { width:100%; border-collapse:collapse; }
+    .inner-table tr { border-bottom:1px solid rgba(0,0,0,0.03); }
+    .inner-table tr:last-child { border-bottom:none; }
+    .inner-table tr:hover td { background:rgba(0,0,0,0.025); }
+    .inner-table td { padding:10px 16px; vertical-align:middle; }
+    .camp-name-cell { display:flex; align-items:center; gap:6px; padding-left:20px; }
+    .camp-dash { width:10px; height:1px; background:var(--g300); flex-shrink:0; }
 
     /* Campaign dot cell */
     .camp-cell { display:flex; align-items:center; gap:7px; }
@@ -216,6 +231,10 @@
 const API = 'https://graph.facebook.com/v21.0';
 let TOKEN = '';
 let MODE  = 'today_vs_yesterday'; // 'today_vs_yesterday' | 'yesterday_vs_avg7'
+
+// Rangos activos (se actualizan en loadDash para que toggleCampaigns los use)
+let CURR_SINCE = '', CURR_UNTIL = '', IS_AVG7 = false;
+const campaignCache = new Map(); // acctId → { campData, currency }
 
 function setMode(m) {
   MODE = m;
@@ -343,6 +362,100 @@ async function fetchActiveCampaigns(accountId) {
   }
 }
 
+async function fetchCampaignInsights(acctId, since, until) {
+  try {
+    const r = await apiFetch(`act_${acctId}/insights`, {
+      level: 'campaign',
+      fields: 'campaign_id,campaign_name,spend,impressions,clicks,ctr,actions',
+      time_range: JSON.stringify({ since, until }),
+      limit: 100,
+    });
+    const map = {};
+    for (const d of r.data || []) map[d.campaign_id] = d;
+    return map;
+  } catch { return {}; }
+}
+
+async function toggleCampaigns(acctId, currency) {
+  const acctRow   = document.getElementById(`row-${acctId}`);
+  const expandRow = document.getElementById(`expand-${acctId}`);
+  const content   = document.getElementById(`camp-content-${acctId}`);
+
+  const isOpen = expandRow.classList.contains('open');
+  expandRow.classList.toggle('open', !isOpen);
+  acctRow.classList.toggle('open', !isOpen);
+  if (isOpen) return;
+
+  // Usar caché si ya se cargó
+  if (campaignCache.has(acctId)) {
+    content.innerHTML = buildCampaignRows(campaignCache.get(acctId).campData, currency);
+    return;
+  }
+
+  content.innerHTML = `<tr><td colspan="7" style="padding:14px 36px;color:var(--g400);font-size:12px;"><span class="spin dark" style="display:inline-block;margin-right:8px;vertical-align:middle"></span>Cargando campañas…</td></tr>`;
+
+  try {
+    const campsRes = await apiFetch(`act_${acctId}/campaigns`, {
+      effective_status: JSON.stringify(['ACTIVE']),
+      fields: 'id,name',
+      limit: 100,
+    });
+    const camps = campsRes.data || [];
+
+    let currMap, compMap;
+    if (IS_AVG7) {
+      const [cm, pm] = await Promise.all([
+        fetchCampaignInsights(acctId, CURR_SINCE, CURR_UNTIL),
+        fetchCampaignInsights(acctId, daysAgo(8), daysAgo(2)),
+      ]);
+      currMap = cm;
+      compMap = {};
+      for (const [k, v] of Object.entries(pm)) compMap[k] = scaleInsights(v, 7);
+    } else {
+      [currMap, compMap] = await Promise.all([
+        fetchCampaignInsights(acctId, CURR_SINCE, CURR_UNTIL),
+        fetchCampaignInsights(acctId, daysAgo(1), daysAgo(1)),
+      ]);
+    }
+
+    const campData = camps.map(c => ({
+      id: c.id, name: c.name,
+      curr: currMap[c.id] || null,
+      comp: compMap[c.id] || null,
+    }));
+
+    campaignCache.set(acctId, { campData, currency });
+    content.innerHTML = buildCampaignRows(campData, currency);
+  } catch (e) {
+    content.innerHTML = `<tr><td colspan="7" style="padding:14px 36px;color:var(--red);font-size:12px;">Error: ${esc(e.message)}</td></tr>`;
+  }
+}
+
+function buildCampaignRows(campData, currency) {
+  if (!campData.length) return `<tr><td colspan="7" style="padding:14px 36px;color:var(--g400);font-size:12px;">Sin campañas activas.</td></tr>`;
+  return campData.map(({ name, curr, comp }) => {
+    const cSpend  = toNum(curr?.spend);
+    const pSpend  = toNum(comp?.spend);
+    const cImpr   = toNum(curr?.impressions);
+    const pImpr   = toNum(comp?.impressions);
+    const cClicks = toNum(curr?.clicks);
+    const pClicks = toNum(comp?.clicks);
+    const cCtr    = toNum(curr?.ctr);
+    const pCtr    = toNum(comp?.ctr);
+    const cConv   = extractAction(curr, 'onsite_conversion.messaging_conversation_started_7d');
+    const pConv   = extractAction(comp,  'onsite_conversion.messaging_conversation_started_7d');
+    return `<tr>
+      <td><div class="camp-name-cell"><span class="camp-dash"></span><span style="font-size:12px;font-weight:500;color:var(--black)">${esc(name)}</span></div></td>
+      <td></td>
+      ${metricCell(cSpend,  pSpend,  v => fmtCur(v, currency), 'spend')}
+      ${metricCell(cConv,   pConv,   v => fmtN(v))}
+      ${metricCell(cImpr,   pImpr,   v => fmtN(v))}
+      ${metricCell(cClicks, pClicks, v => fmtN(v))}
+      ${metricCell(cCtr,    pCtr,    v => fmtN(v, 2) + '&nbsp;%', 'pp')}
+    </tr>`;
+  }).join('');
+}
+
 // Divide cada métrica numérica de un insight por N (para calcular promedios)
 function scaleInsights(ins, divisor) {
   if (!ins || divisor === 0) return null;
@@ -429,6 +542,12 @@ async function loadDash() {
     noteText   = `Período actual: ${yesterday} · Comparado: promedio ${humanDate(daysAgo(8))}–${humanDate(daysAgo(2))} · Graph API v21.0`;
     document.getElementById('topbar-date').textContent = `Ayer ${humanDate(yesterday)} vs prom. 7d`;
   }
+
+  // Actualizar estado para que toggleCampaigns use los rangos correctos
+  CURR_SINCE = mainSince;
+  CURR_UNTIL = mainUntil;
+  IS_AVG7    = (MODE === 'yesterday_vs_avg7');
+  campaignCache.clear();
 
   document.getElementById('dash-title').textContent = titleText;
   document.getElementById('dash-sub').textContent   = subText;
@@ -524,9 +643,12 @@ async function loadDash() {
 
     const noActLabel = MODE === 'today_vs_yesterday' ? 'Sin actividad hoy' : 'Sin actividad ayer';
 
+    const chevronSvg = `<svg class="chevron" width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
     const rows = data.map(({ acct, currency, activeCamps, cSpend, pSpend, cImpr, pImpr, cClicks, pClicks, cCtr, pCtr, cConv, pConv }) => {
       const hasData = cSpend != null || cImpr != null;
       const name    = esc(acct.name || acct.id);
+      const numId   = acct.id.replace('act_', '');
 
       // Celda de campañas activas
       const campHtml = activeCamps == null
@@ -535,21 +657,33 @@ async function loadDash() {
           ? `<td><div class="camp-cell"><span class="dot green"></span><span class="camp-count">${activeCamps}</span></div></td>`
           : `<td><div class="camp-cell"><span class="dot red"></span><span class="camp-none">No tiene campañas activas</span></div></td>`;
 
+      const expandRow = `<tr class="expand-row" id="expand-${numId}"><td colspan="7"><table class="inner-table"><tbody id="camp-content-${numId}"></tbody></table></td></tr>`;
+
       if (!hasData) {
-        return `<tr class="no-act">
+        return `<tr id="row-${numId}" class="acct-row no-act" onclick="toggleCampaigns('${numId}', '${currency}')">
           <td>
-            <div class="acct-name">${name}</div>
-            <div class="acct-id">${acct.id}</div>
+            <div style="display:flex;align-items:center;gap:4px">
+              <div>
+                <div class="acct-name">${name}</div>
+                <div class="acct-id">${acct.id}</div>
+              </div>
+              ${chevronSvg}
+            </div>
           </td>
           ${campHtml}
           <td colspan="5" style="color:var(--g400);font-size:12px;">${noActLabel}</td>
-        </tr>`;
+        </tr>${expandRow}`;
       }
 
-      return `<tr>
+      return `<tr id="row-${numId}" class="acct-row" onclick="toggleCampaigns('${numId}', '${currency}')">
         <td>
-          <div class="acct-name">${name}</div>
-          <div class="acct-id">${acct.id}</div>
+          <div style="display:flex;align-items:center;gap:4px">
+            <div>
+              <div class="acct-name">${name}</div>
+              <div class="acct-id">${acct.id}</div>
+            </div>
+            ${chevronSvg}
+          </div>
         </td>
         ${campHtml}
         ${metricCell(cSpend,  pSpend,  v => fmtCur(v, currency), 'spend')}
@@ -557,7 +691,7 @@ async function loadDash() {
         ${metricCell(cImpr,   pImpr,   v => fmtN(v))}
         ${metricCell(cClicks, pClicks, v => fmtN(v))}
         ${metricCell(cCtr,    pCtr,    v => fmtN(v, 2) + '&nbsp;%', 'pp')}
-      </tr>`;
+      </tr>${expandRow}`;
     });
 
     tbody.innerHTML = rows.join('');
