@@ -190,7 +190,13 @@
             Hoy vs Ayer
           </button>
           <button class="seg-btn" id="mode-avg" onclick="setMode('yesterday_vs_avg7')">
-            Ayer vs Promedio 7&nbsp;días
+            Ayer vs Prom.&nbsp;7d
+          </button>
+          <button class="seg-btn" id="mode-7d" onclick="setMode('last7')">
+            Últimos&nbsp;7 días
+          </button>
+          <button class="seg-btn" id="mode-month" onclick="setMode('this_month')">
+            Este&nbsp;mes
           </button>
         </div>
         <button class="btn btn-ghost" onclick="loadDash()" id="refresh-btn" aria-label="Actualizar datos">
@@ -233,13 +239,15 @@ let TOKEN = '';
 let MODE  = 'today_vs_yesterday'; // 'today_vs_yesterday' | 'yesterday_vs_avg7'
 
 // Rangos activos (se actualizan en loadDash para que toggleCampaigns los use)
-let CURR_SINCE = '', CURR_UNTIL = '', IS_AVG7 = false;
+let CURR_SINCE = '', CURR_UNTIL = '', COMP_SINCE = '', COMP_UNTIL = '', IS_AVG7 = false;
 const campaignCache = new Map(); // acctId → { campData, currency }
 
 function setMode(m) {
   MODE = m;
-  document.getElementById('mode-today').classList.toggle('active', m === 'today_vs_yesterday');
-  document.getElementById('mode-avg').classList.toggle('active',   m === 'yesterday_vs_avg7');
+  document.getElementById('mode-today').classList.toggle('active',  m === 'today_vs_yesterday');
+  document.getElementById('mode-avg').classList.toggle('active',    m === 'yesterday_vs_avg7');
+  document.getElementById('mode-7d').classList.toggle('active',     m === 'last7');
+  document.getElementById('mode-month').classList.toggle('active',  m === 'this_month');
   loadDash();
 }
 
@@ -249,6 +257,21 @@ function isoDate(d) { return d.toISOString().slice(0, 10); }
 function daysAgo(n) { const d = new Date(); d.setDate(d.getDate() - n); return isoDate(d); }
 function getToday()     { return daysAgo(0); }
 function getYesterday() { return daysAgo(1); }
+
+function firstOfMonth() {
+  const d = new Date();
+  return isoDate(new Date(d.getFullYear(), d.getMonth(), 1));
+}
+function firstOfLastMonth() {
+  const d = new Date();
+  return isoDate(new Date(d.getFullYear(), d.getMonth() - 1, 1));
+}
+function sameDayLastMonth() {
+  const d = new Date();
+  const day = d.getDate();
+  const lastOfPrev = new Date(d.getFullYear(), d.getMonth(), 0); // día 0 = último día del mes anterior
+  return isoDate(new Date(d.getFullYear(), d.getMonth() - 1, Math.min(day, lastOfPrev.getDate())));
+}
 
 function humanDate(iso) {
   const [y, m, day] = iso.split('-');
@@ -406,7 +429,7 @@ async function toggleCampaigns(acctId, currency) {
     if (IS_AVG7) {
       const [cm, pm] = await Promise.all([
         fetchCampaignInsights(acctId, CURR_SINCE, CURR_UNTIL),
-        fetchCampaignInsights(acctId, daysAgo(8), daysAgo(2)),
+        fetchCampaignInsights(acctId, COMP_SINCE, COMP_UNTIL),
       ]);
       currMap = cm;
       compMap = {};
@@ -414,7 +437,7 @@ async function toggleCampaigns(acctId, currency) {
     } else {
       [currMap, compMap] = await Promise.all([
         fetchCampaignInsights(acctId, CURR_SINCE, CURR_UNTIL),
-        fetchCampaignInsights(acctId, daysAgo(1), daysAgo(1)),
+        fetchCampaignInsights(acctId, COMP_SINCE, COMP_UNTIL),
       ]);
     }
 
@@ -533,7 +556,8 @@ async function loadDash() {
     subText    = `${compLabel} · Cargando…`;
     noteText   = `Período actual: ${today} · Comparado: ${yesterday} · Graph API v21.0`;
     document.getElementById('topbar-date').textContent = `Hoy ${humanDate(today)} vs ${humanDate(yesterday)}`;
-  } else {
+    COMP_SINCE = yesterday; COMP_UNTIL = yesterday;
+  } else if (MODE === 'yesterday_vs_avg7') {
     mainSince  = yesterday;
     mainUntil  = yesterday;
     compLabel  = `vs promedio últimos 7 días`;
@@ -541,6 +565,25 @@ async function loadDash() {
     subText    = `${compLabel} · Cargando…`;
     noteText   = `Período actual: ${yesterday} · Comparado: promedio ${humanDate(daysAgo(8))}–${humanDate(daysAgo(2))} · Graph API v21.0`;
     document.getElementById('topbar-date').textContent = `Ayer ${humanDate(yesterday)} vs prom. 7d`;
+    COMP_SINCE = daysAgo(8); COMP_UNTIL = daysAgo(2);
+  } else if (MODE === 'last7') {
+    mainSince  = daysAgo(7);
+    mainUntil  = yesterday;
+    compLabel  = `vs 7 días anteriores`;
+    titleText  = `Últimos 7 días`;
+    subText    = `${compLabel} · Cargando…`;
+    noteText   = `Período actual: ${humanDate(daysAgo(7))}–${humanDate(yesterday)} · Comparado: ${humanDate(daysAgo(14))}–${humanDate(daysAgo(8))} · Graph API v21.0`;
+    document.getElementById('topbar-date').textContent = `Últ. 7 días vs 7 ant.`;
+    COMP_SINCE = daysAgo(14); COMP_UNTIL = daysAgo(8);
+  } else {
+    mainSince  = firstOfMonth();
+    mainUntil  = today;
+    compLabel  = `vs mismo período mes pasado`;
+    titleText  = `Este mes`;
+    subText    = `${compLabel} · Cargando…`;
+    noteText   = `Período actual: ${humanDate(firstOfMonth())}–${humanDate(today)} · Comparado: ${humanDate(firstOfLastMonth())}–${humanDate(sameDayLastMonth())} · Graph API v21.0`;
+    document.getElementById('topbar-date').textContent = `Este mes vs mes ant.`;
+    COMP_SINCE = firstOfLastMonth(); COMP_UNTIL = sameDayLastMonth();
   }
 
   // Actualizar estado para que toggleCampaigns use los rangos correctos
@@ -598,19 +641,18 @@ async function loadDash() {
 
       // Período de comparación según modo
       let ins_main, insComp;
-      if (MODE === 'today_vs_yesterday') {
-        [ins_main, insComp] = await Promise.all([
-          fetchInsights(numId, mainSince, mainUntil),
-          fetchInsights(numId, yesterday, yesterday),
-        ]);
-      } else {
-        // Ayer vs promedio diario de los 7 días previos (daysAgo(8) → daysAgo(2))
+      if (IS_AVG7) {
         let ins_7d;
         [ins_main, ins_7d] = await Promise.all([
           fetchInsights(numId, mainSince, mainUntil),
-          fetchInsights(numId, daysAgo(8), daysAgo(2)),
+          fetchInsights(numId, COMP_SINCE, COMP_UNTIL),
         ]);
         insComp = scaleInsights(ins_7d, 7);
+      } else {
+        [ins_main, insComp] = await Promise.all([
+          fetchInsights(numId, mainSince, mainUntil),
+          fetchInsights(numId, COMP_SINCE, COMP_UNTIL),
+        ]);
       }
 
       const [, activeCamps] = await Promise.all([
@@ -641,7 +683,10 @@ async function loadDash() {
       return (b.cSpend ?? 0) - (a.cSpend ?? 0);
     });
 
-    const noActLabel = MODE === 'today_vs_yesterday' ? 'Sin actividad hoy' : 'Sin actividad ayer';
+    const noActLabel = MODE === 'today_vs_yesterday' ? 'Sin actividad hoy'
+      : MODE === 'yesterday_vs_avg7' ? 'Sin actividad ayer'
+      : MODE === 'last7' ? 'Sin actividad en los últimos 7 días'
+      : 'Sin actividad este mes';
 
     const chevronSvg = `<svg class="chevron" width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 
