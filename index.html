@@ -124,6 +124,7 @@
     .dot.red   { background:var(--red);   box-shadow:0 0 0 2px rgba(255,91,79,0.2); }
     .camp-count { font-family:'Geist Mono',monospace; font-size:12px; font-weight:500; font-variant-numeric:tabular-nums; }
     .camp-none  { font-size:11px; color:var(--red); }
+    .acct-status { font-size:10.5px; font-weight:500; margin-top:3px; }
 
     /* Note */
     .note { margin-top:14px; display:flex; flex-direction:column; gap:3px; }
@@ -338,6 +339,18 @@ function metricCell(curr, prev, fmt, colorMode = 'normal') {
     <span class="mv">${fmt(val)}</span>
     ${deltaHtml(val, prev, colorMode)}
   </td>`;
+}
+
+function acctStatusLabel(status) {
+  const map = {
+    2:   { text: 'Deshabilitada',     color: 'var(--red)' },
+    3:   { text: 'Saldo pendiente',   color: '#d97706' },
+    7:   { text: 'En revisión',       color: '#d97706' },
+    9:   { text: 'Período de gracia', color: '#d97706' },
+    100: { text: 'Cierre pendiente',  color: '#d97706' },
+    101: { text: 'Cerrada',           color: 'var(--red)' },
+  };
+  return map[parseInt(status)] || null; // null para ACTIVE (1) → no se muestra
 }
 
 function extractAction(ins, type) {
@@ -624,10 +637,7 @@ async function loadDash() {
       limit: 100,
     });
 
-    const accounts = (acctRes.data || []).filter(a => {
-      // account_status: 1=ACTIVE, 2=DISABLED, 3=UNSETTLED …
-      return parseInt(a.account_status) === 1;
-    });
+    const accounts = acctRes.data || [];
 
     if (!accounts.length) {
       tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--g400);font-size:13px;">No se encontraron cuentas publicitarias activas.</td></tr>`;
@@ -696,11 +706,15 @@ async function loadDash() {
       const numId   = acct.id.replace('act_', '');
 
       // Celda de campañas activas
+      const statusInfo = acctStatusLabel(acct.account_status);
+      const statusHtml = statusInfo
+        ? `<div class="acct-status" style="color:${statusInfo.color}">${statusInfo.text}</div>`
+        : '';
       const campHtml = activeCamps == null
-        ? `<td><span style="color:var(--g400);font-size:12px;">—</span></td>`
+        ? `<td><span style="color:var(--g400);font-size:12px;">—</span>${statusHtml}</td>`
         : activeCamps > 0
-          ? `<td><div class="camp-cell"><span class="dot green"></span><span class="camp-count">${activeCamps}</span></div></td>`
-          : `<td><div class="camp-cell"><span class="dot red"></span><span class="camp-none">No tiene campañas activas</span></div></td>`;
+          ? `<td><div class="camp-cell"><span class="dot green"></span><span class="camp-count">${activeCamps}</span></div>${statusHtml}</td>`
+          : `<td><div class="camp-cell"><span class="dot red"></span><span class="camp-none">No tiene campañas activas</span></div>${statusHtml}</td>`;
 
       const expandRow = `<tr class="expand-row" id="expand-${numId}"><td colspan="7"><table class="inner-table"><tbody id="camp-content-${numId}"></tbody></table></td></tr>`;
 
