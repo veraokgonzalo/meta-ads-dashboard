@@ -1,0 +1,37 @@
+name: Meta Ads Status Monitor
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch: # permite ejecución manual desde la UI de GitHub
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Run status monitor
+        env:
+          META_TOKEN: ${{ secrets.META_TOKEN }}
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          ALERT_TO: ${{ secrets.ALERT_TO }}
+        run: python monitor/check_accounts.py
+
+      - name: Commit updated states
+        run: |
+          git config user.name "meta-monitor[bot]"
+          git config user.email "meta-monitor@noreply.github.com"
+          git add monitor/states.json
+          git diff --cached --quiet || git commit -m "chore: update account states [skip ci]"
+          git push
