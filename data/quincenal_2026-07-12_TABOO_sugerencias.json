@@ -1,0 +1,41 @@
+{
+  "summary": "<strong>TABOO</strong> invirtió 151.622 ARS en la quincena (28 jun – 12 jul) repartidos entre mensajería y tráfico. La mensajería concentra el grueso del gasto pero rinde caro: <strong>26 mensajes a un promedio de 5.831 ARS c/u</strong> y un CTR general de 0,84%. El tráfico es el punto fuerte del período: la campaña <strong>Mundial</strong> trajo la mayor parte de los 706 clics a un costo muy bajo (~86 ARS/clic). Dos focos de acción: recortar los creativos de mensajería más caros e ineficientes (sobre todo <strong>POST_CURSO</strong> y las placas de mayo que siguen vivas), y sostener/escalar lo que funciona (REEL_BARRA_MOVIL en mensajería, REEL_MUNDIAL y los carruseles de julio en tráfico).",
+  "accounts": {
+    "1056862166165944": {
+      "name": "TABOO",
+      "summary": "Cuenta mixta con fuerte peso en mensajería. El costo por mensaje (5.831 ARS prom.) está inflado por unos pocos anuncios que gastan mucho y convierten poco. En el otro extremo, el tráfico rinde bien y barato. Hay dependencia alta de la campaña EVENTOS (varios anuncios), y arrastre de creativos de mayo que ya deberían haberse renovado. No hay fatiga severa (ninguna frecuencia ≥ 3), pero POST_CURSO ya llega a 2,56.",
+      "suggestions": [
+        {
+          "severity": "alta",
+          "ad": "POST_CURSO — Curso (mensajes)",
+          "text": "Es el 2º mayor gasto de la cuenta (25.941 ARS) y solo trajo 4 mensajes (6.485 ARS c/u, por encima del promedio). Tiene el CTR más bajo de la cuenta (0,48%), frecuencia 2,56 y 67 clics que casi no se convierten en conversaciones → desconexión clic/mensaje. Renovar el creativo y revisar el CTA/flujo a WhatsApp; si no mejora en pocos días, pausar."
+        },
+        {
+          "severity": "alta",
+          "ad": "POST_EVENTOSMAYO (×2) — Eventos (mensajes)",
+          "text": "Placas de mayo que siguen activas en julio. Una gastó 1.766 ARS con 0 mensajes y la otra 1 mensaje a 2.543 ARS. Pausar los creativos de mayo ya vencidos y liberar ese presupuesto hacia los anuncios de julio."
+        },
+        {
+          "severity": "media",
+          "ad": "REEL_EVENTOSJULIO (×2) — Eventos (mensajes)",
+          "text": "Costo por mensaje muy alto: 9.816 y 7.049 ARS por 1 mensaje cada uno. Una versión además tiene CTR 0,60% (bajo). Monitorear de cerca; pausar la de peor CTR y dejar competir a la mejor."
+        },
+        {
+          "severity": "media",
+          "ad": "CARRUSEL_PROMOSJULIO — Promosjulio (mensajes)",
+          "text": "Mejor CTR de mensajería (1,27%) pero solo 1 mensaje con 9.492 ARS invertidos: el creativo engancha (57 clics) pero no convierte a conversación. Revisar la oferta y el CTA hacia WhatsApp; el interés está, falta cerrar."
+        },
+        {
+          "severity": "baja",
+          "ad": "REEL_BARRA_MOVIL — Eventos (mensajes)",
+          "text": "El mejor performer de mensajería: 10 mensajes a 3.612 ARS c/u, muy por debajo del promedio de la cuenta. Mantener y considerar subir presupuesto."
+        },
+        {
+          "severity": "baja",
+          "ad": "REEL_MUNDIAL — Mundial (tráfico)",
+          "text": "El motor del tráfico: 197 clics a ~87 ARS c/u con el CTR más alto entre los reels (1,06%). Sostener mientras dure la ventana del Mundial (es estacional); verificar que el evento siga vigente antes de escalar."
+        }
+      ]
+    }
+  }
+}

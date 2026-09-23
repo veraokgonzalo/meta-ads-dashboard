@@ -1,0 +1,114 @@
+{
+  "summary": "Quincena con <strong>14 cuentas activas</strong> y buena salud general: el CTR promedio del portfolio se ubica por encima del 2%, con varias cuentas de mensajería rindiendo por encima del 3%. La inversión no se totaliza entre monedas: Carolina Varela opera en CLP (~$1,36M, la cuenta de mayor volumen del portfolio) y el resto en ARS (~$603k combinados). Los puntos de acción se concentran en tres frentes: <strong>(1)</strong> pausar creativos de eventos ya finalizados (Cyber/Recyber en Carolina Varela, Día del Padre); <strong>(2)</strong> renovar creativos con fatiga o CTR bajo (frecuencia &gt;3 en TABOO, placas de bajo CTR); y <strong>(3)</strong> escalar a los ganadores claros y sumar variantes en cuentas que dependen de un solo anuncio (Diana Feldman, Matías Feldman, Apliques de La Tienda).",
+  "accounts": {
+    "4100755920144855": {
+      "name": "Carolina Varela",
+      "summary": "La cuenta más grande del portfolio y la de mejor rendimiento en mensajería: 490 mensajes con un CTR del 3,16%. El motor es 'Localizada' (Placa), que concentra el 73% de los mensajes a un costo muy bajo ($1.894) y CTR del 4,12%. El resto del gasto está repartido en creativos del ciclo Cyber, que ya pasó y muestra costos por mensaje altos.",
+      "suggestions": [
+        {"severity": "alta", "ad": "Cyber Carru / Cyber Reel", "text": "Pausar los creativos del ciclo Cyber: el evento finalizó y siguen consumiendo presupuesto con costo por mensaje muy alto ($9.133 y ~$5-6,5k) frente al promedio de la cuenta ($2.783)."},
+        {"severity": "baja", "ad": "Localizada", "text": "Es el anuncio ganador (358 mensajes, CTR 4,12%, costo $1.894). Escalar presupuesto y preparar una variante del creativo para sostener el rendimiento cuando suba la frecuencia."},
+        {"severity": "media", "ad": "Celulitis", "text": "CTR bajo (1,67%) y costo por mensaje alto ($4.527) para el gasto que recibe. Renovar el video (gancho/primeros 3 segundos) o reducir presupuesto a favor de Localizada."}
+      ]
+    },
+    "1056862166165944": {
+      "name": "TABOO",
+      "summary": "Cuenta mixta (mensajes + tráfico). El tráfico funciona bien (Mundial y Día del Padre con clics baratos), pero la mensajería arrastra el CTR general al 1,14%: los creativos de 'Fiestas' tienen fatiga marcada (frecuencia 2,8-3,4) y CTR por debajo del 1%.",
+      "suggestions": [
+        {"severity": "alta", "ad": "Fiestas (Placas)", "text": "Frecuencia muy alta (3,38 y 2,78) con CTR de 0,80% y costo por mensaje de hasta $9.594. Pausar y reemplazar por creativos nuevos; la audiencia ya está saturada."},
+        {"severity": "media", "ad": "Fiestas (Reel)", "text": "Frecuencia 3,14 (fatiga). Es el mejor de 'Fiestas' pero conviene rotar el creativo antes de que caiga el rendimiento."},
+        {"severity": "baja", "ad": "Mundial / Día del Padre (Tráfico)", "text": "Clics baratos ($52 y $151) y volumen sano. Mantener; es lo que sostiene la cuenta esta quincena."}
+      ]
+    },
+    "2816534281870230": {
+      "name": "FINTAX",
+      "summary": "Cuenta de tráfico con buen volumen (1.256 clics) y CTR del 1,89%. El peso está en dos reels, con rendimientos dispares.",
+      "suggestions": [
+        {"severity": "baja", "ad": "Web Tráfico (Reel)", "text": "Excelente: 807 clics a $43 con CTR 3,31%. Escalar presupuesto."},
+        {"severity": "media", "ad": "Monotributo Ig2 (Reel)", "text": "CTR bajo (1,07%) y costo por clic casi el doble ($76). Renovar el creativo o redirigir parte del presupuesto al reel de Web."}
+      ]
+    },
+    "720469197032249": {
+      "name": "Vsm explorers",
+      "summary": "Cuenta de mensajería muy eficiente: CTR 3,76% y costo por mensaje de ~$1.175. Dos reels rindiendo bien.",
+      "suggestions": [
+        {"severity": "baja", "ad": "China Oeste / Periodistán", "text": "Ambos con CTR ~3,8% y costo por mensaje sano. Buen momento para subir presupuesto."},
+        {"severity": "media", "ad": "China Oeste", "text": "Frecuencia 1,89 (en ascenso). Preparar una variante del reel para evitar fatiga si se escala el presupuesto."}
+      ]
+    },
+    "290990484008212": {
+      "name": "Juan Alfaro",
+      "summary": "Toda la inversión depende de un único creativo ('India Nepal', Placa): 27 mensajes, CTR 2,13%, costo $1.693. Rendimiento aceptable pero frágil por depender de un solo anuncio.",
+      "suggestions": [
+        {"severity": "media", "ad": "India Nepal", "text": "Frecuencia 2,56 con un solo creativo activo: la audiencia empieza a repetir impacto. Sumar 1-2 variantes (probar formato reel/video) para diversificar y bajar la frecuencia."}
+      ]
+    },
+    "1145206216681663": {
+      "name": "Matías Feldman Hype",
+      "summary": "El mejor CTR de mensajería del portfolio (4,41%) con un único reel ('Idea'): 39 mensajes a $1.167. Rinde excelente pero concentrado en un solo creativo.",
+      "suggestions": [
+        {"severity": "baja", "ad": "Idea (Reel)", "text": "Ganador claro (CTR 4,41%). Escalar presupuesto."},
+        {"severity": "media", "ad": "Idea (Reel)", "text": "Es el único anuncio activo. Producir una segunda variante para sostener el rendimiento y poder escalar sin disparar la frecuencia."}
+      ]
+    },
+    "1192531695291401": {
+      "name": "brucor_coronda",
+      "summary": "Señal de alerta: 705 clics pero solo 9 mensajes, con costo por mensaje muy alto ($5.005). El creativo atrae clics (CTR 1,82%) pero no convierte a conversación.",
+      "suggestions": [
+        {"severity": "alta", "ad": "El Secreto (Reel)", "text": "Desconexión entre clic y mensaje: mucho clic, pocos mensajes. Revisar el flujo de mensajería (mensaje de bienvenida/CTA) y la promesa del creativo vs. lo que encuentra el usuario al abrir el chat."}
+      ]
+    },
+    "1668094141003318": {
+      "name": "RIVERA C&H",
+      "summary": "Cuenta mixta. El tráfico ('Sorteo Día del Padre') funciona muy bien (312 clics a $45, CTR 2,45%), pero el carrusel de mensajería es caro e ineficiente.",
+      "suggestions": [
+        {"severity": "alta", "ad": "Promo Junio (Carrusel)", "text": "3 mensajes a $9.254 cada uno, CTR 1,07% y frecuencia 2,30. Pausar o rehacer el creativo; está drenando presupuesto sin resultados."},
+        {"severity": "baja", "ad": "Sorteo Día del Padre (Tráfico)", "text": "Buen rendimiento. Si el sorteo sigue vigente, mantener; si ya cerró, pausar al finalizar el evento."}
+      ]
+    },
+    "299155633829255": {
+      "name": "La Tienda Comunicacion",
+      "summary": "Cuenta de mensajería sana y barata (costo por mensaje $659). Dos creativos rindiendo, con un ganador destacado.",
+      "suggestions": [
+        {"severity": "baja", "ad": "Apliques (Reel)", "text": "El más eficiente: 25 mensajes a $349 con CTR 3,36%. Escalar presupuesto."},
+        {"severity": "baja", "ad": "Impresión DTF (Carrusel)", "text": "Rinde bien (CTR 1,97%, costo $946). Mantener."}
+      ]
+    },
+    "1068280604861633": {
+      "name": "Germán Parada Serpa",
+      "summary": "Cuenta de tráfico con un único creativo (Placa): 510 clics a $64. Buen volumen pero CTR bajo (1,05%).",
+      "suggestions": [
+        {"severity": "media", "ad": "Nuestros Servicios (Placa)", "text": "CTR de 1,05% es bajo para tráfico. Probar un formato reel/video para levantar el CTR; al ser un solo creativo, conviene diversificar."}
+      ]
+    },
+    "1900226163874743": {
+      "name": "Kinesiólogo Fermín Larrañaga",
+      "summary": "Mensajería muy eficiente: CTR 3,49% y costo por mensaje de $755. El reel 'Pilares' concentra el resultado.",
+      "suggestions": [
+        {"severity": "media", "ad": "Pilares (Reel)", "text": "Rinde muy bien (CTR 3,52%) pero la frecuencia ya está en 2,19 y subiendo. Preparar una variante del reel para renovar antes de que aparezca fatiga."}
+      ]
+    },
+    "1055891816639430": {
+      "name": "odamparofite",
+      "summary": "Un único carrusel ('Armonía Facial'): 13 mensajes a $2.319, CTR 1,77%, frecuencia 2,13. Rendimiento medio y dependiente de un solo creativo.",
+      "suggestions": [
+        {"severity": "media", "ad": "Armonía Facial (Carrusel)", "text": "CTR medio y frecuencia en ascenso (2,13). Sumar una variante en formato reel/video para mejorar el CTR y bajar la frecuencia."}
+      ]
+    },
+    "3314437138860175": {
+      "name": "Diana Feldman",
+      "summary": "La mensajería más barata del portfolio: 46 mensajes a solo $484 cada uno, con CTR 3,13% y frecuencia sana (1,28). Un único creativo ('Sublimado', Placa) rindiendo excelente.",
+      "suggestions": [
+        {"severity": "baja", "ad": "Sublimado (Placa)", "text": "Costo por mensaje excepcional ($484). Clara oportunidad de escalar presupuesto."},
+        {"severity": "media", "ad": "Sublimado (Placa)", "text": "Al ser el único anuncio activo, sumar una variante para poder escalar sin que la frecuencia se dispare."}
+      ]
+    },
+    "1372445320756173": {
+      "name": "1372445320756173",
+      "summary": "Cuenta de tráfico con bajo volumen de inversión ($7.848): un creativo de Día del Padre con clics muy baratos ($29) y CTR alto (3,75%).",
+      "suggestions": [
+        {"severity": "baja", "ad": "Día del Padre (Placa)", "text": "Rendimiento bueno y barato, pero es un creativo de evento (Día del Padre) que pierde vigencia. Planificar el reemplazo por la próxima campaña."},
+        {"severity": "baja", "ad": "", "text": "La cuenta no tiene nombre configurado en Meta (aparece como ID). Conviene asignarle un nombre para que los informes la identifiquen."}
+      ]
+    }
+  }
+}
