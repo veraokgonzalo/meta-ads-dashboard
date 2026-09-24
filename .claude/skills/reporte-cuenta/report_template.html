@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#ffffff" />
+  <title>Reporte Meta Ads</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    /* Impresion / PDF: el tamaño de pagina lo fija html_to_pdf.py (una sola pagina
+       a medida = alto del contenido, sin cortes). Aca solo ajustes visuales. */
+    @page { margin: 0; }
+    @media print {
+      body { background: #fff; }
+      .wrap { margin: 0 auto; }
+    }
+    :root {
+      --black:#171717; --white:#ffffff;
+      --g100:#fafafa; --g200:#f5f5f5; --g300:#e5e5e5;
+      --g400:#a3a3a3; --g500:#737373; --g600:#525252;
+      --blue:#0a72ef; --red:#ff5b4f; --green:#16a34a;
+      --s-card:0px 0px 0px 1px rgba(0,0,0,0.08),0px 2px 4px rgba(0,0,0,0.04),inset 0px 0px 0px 1px #fafafa;
+      --s-ring:0px 0px 0px 1px rgba(0,0,0,0.08);
+    }
+    html { color-scheme: light; }
+    body { font-family:'Geist',system-ui,sans-serif; font-feature-settings:"liga" 1; background:var(--g100); color:var(--black); -webkit-font-smoothing:antialiased; }
+    .wrap { max-width:980px; margin:0 auto; padding:28px 24px 64px; }
+
+    /* Header */
+    .head { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:8px 0 24px; }
+    .head-l .eyebrow { font-size:11px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:var(--g400); margin-bottom:4px; }
+    .head-l h1 { font-size:28px; font-weight:700; letter-spacing:-1.4px; text-wrap:balance; }
+    .head-l .period { font-size:13px; color:var(--g500); margin-top:2px; font-variant-numeric:tabular-nums; }
+    .head-logo { height:48px; width:auto; border-radius:8px; flex-shrink:0; }
+
+    /* Card base */
+    .card { background:var(--white); box-shadow:var(--s-card); border-radius:14px; padding:20px 22px; }
+    section { margin-bottom:18px; }
+    .sec-title { font-size:12px; font-weight:600; letter-spacing:0.04em; text-transform:uppercase; color:var(--g500); margin-bottom:12px; }
+
+    /* Conclusiones */
+    .concl p { font-size:14px; line-height:1.65; color:var(--g600); text-wrap:pretty; }
+
+    /* KPIs */
+    .kpis { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+    .kpi { background:var(--white); box-shadow:var(--s-card); border-radius:14px; padding:18px 20px; }
+    .kpi .k-label { font-size:12px; font-weight:500; color:var(--g500); margin-bottom:8px; }
+    .kpi .k-val { font-size:26px; font-weight:700; letter-spacing:-1px; font-variant-numeric:tabular-nums; }
+
+    /* KPIs (vertical) + tendencia mensual al lado */
+    .kpi-trend { display:grid; grid-template-columns:260px 1fr; gap:14px; align-items:stretch; }
+    .kpi-trend .kpis-col { display:flex; flex-direction:column; gap:14px; }
+    .kpi-trend .kpis-col .kpi { flex:1; display:flex; flex-direction:column; justify-content:center; }
+    .trend-card { background:var(--white); box-shadow:var(--s-card); border-radius:14px; padding:18px 20px; display:flex; flex-direction:column; }
+    .trend-card h3 { font-size:13px; font-weight:600; margin-bottom:14px; }
+    .trend-box { flex:1; min-height:300px; position:relative; }
+
+    /* Charts */
+    .charts { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    .chart-card { background:var(--white); box-shadow:var(--s-card); border-radius:14px; padding:18px 20px; }
+    .chart-card h3 { font-size:13px; font-weight:600; margin-bottom:14px; }
+    .chart-box { height:220px; position:relative; }
+
+    /* Tabla */
+    table { width:100%; border-collapse:collapse; font-variant-numeric:tabular-nums; }
+    thead th { font-size:11px; font-weight:600; letter-spacing:0.03em; text-transform:uppercase; color:var(--g400); text-align:right; padding:8px 10px; border-bottom:1px solid var(--g300); }
+    thead th:nth-child(1), thead th:nth-child(2) { text-align:left; }
+    tbody td { font-size:13px; padding:10px; border-bottom:1px solid var(--g200); text-align:right; }
+    tbody td:nth-child(2) { text-align:left; color:var(--g600); }
+    tbody tr:last-child td { border-bottom:none; }
+    .thumb { width:66px; height:66px; border-radius:8px; object-fit:cover; box-shadow:var(--s-ring); background:var(--g200); display:block; }
+    .thumb-ph { width:66px; height:66px; border-radius:8px; background:var(--g200); display:flex; align-items:center; justify-content:center; color:var(--g400); font-size:10px; }
+    .camp { font-weight:500; color:var(--black); }
+    .camp small { display:block; color:var(--g400); font-weight:400; font-size:11px; }
+
+    /* Footer */
+    .ref { margin-top:20px; padding-top:14px; border-top:1px solid var(--g300); }
+    .ref h4 { font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.04em; color:var(--g500); margin-bottom:6px; }
+    .ref dl { font-size:12px; line-height:1.3; color:var(--g500); }
+    .ref dt { font-weight:600; color:var(--g600); display:inline; }
+    .ref dd { display:inline; margin:0; }
+    .ref .row { margin-bottom:1px; }
+    .credit { margin-top:20px; font-size:11px; color:var(--g400); text-align:center; }
+
+    @media (max-width:720px) {
+      .kpis, .charts, .kpi-trend { grid-template-columns:1fr; }
+      .head { flex-direction:column; align-items:flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="head">
+      <div class="head-l">
+        <div class="eyebrow">Reporte de performance · Meta Ads</div>
+        <h1 id="acct-name"></h1>
+        <div class="period" id="period"></div>
+      </div>
+      <img class="head-logo" id="logo" alt="Logo agencia" />
+    </header>
+
+    <section class="card concl">
+      <div class="sec-title">Resumen del mes</div>
+      <p id="conclusions"></p>
+    </section>
+
+    <section class="kpis" id="kpi-section"></section>
+
+    <section>
+      <div class="sec-title">Evolución del mes</div>
+      <div class="charts">
+        <div class="chart-card">
+          <h3 id="chart1-title"></h3>
+          <div class="chart-box"><canvas id="chart1"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <h3>Inversión por día</h3>
+          <div class="chart-box"><canvas id="chart2"></canvas></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="demo-section">
+      <div class="sec-title">Demografía de resultados</div>
+      <div class="charts">
+        <div class="chart-card">
+          <h3 id="demo-gender-title"></h3>
+          <div class="chart-box"><canvas id="chartGender"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <h3 id="demo-age-title"></h3>
+          <div class="chart-box"><canvas id="chartAge"></canvas></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="ig-section" style="display:none">
+      <div class="sec-title">Seguidores de Instagram</div>
+      <div class="chart-card">
+        <h3 id="ig-title"></h3>
+        <div class="chart-box" style="height:260px"><canvas id="chartFollowers"></canvas></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="sec-title">Detalle por anuncio</div>
+      <table>
+        <thead><tr id="thead-row"></tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </section>
+
+    <footer class="ref">
+      <h4>Referencia</h4>
+      <dl id="glossary"></dl>
+    </footer>
+    <div class="credit" id="credit"></div>
+  </div>
+
+  <script>
+    const DATA = /*__DATA__*/{};
+
+    const fmtN = (n, dec=0) => (n==null?'—':Number(n).toLocaleString('es-AR',{minimumFractionDigits:dec,maximumFractionDigits:dec}));
+    const fmtCur = (n) => '$ ' + (Number(n)||0).toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2});
+    const fmtCur0 = (n) => '$ ' + Math.round(Number(n)||0).toLocaleString('es-AR');
+    const fmtCompactNum = (n) => { n=Number(n)||0; const a=Math.abs(n);
+      if (a>=1e6) return (n/1e6).toLocaleString('es-AR',{maximumFractionDigits:1})+'M';
+      if (a>=1e3) return (n/1e3).toLocaleString('es-AR',{maximumFractionDigits:1})+'k';
+      return n.toLocaleString('es-AR',{maximumFractionDigits:0}); };
+    const fmtCompactCur = (n) => '$' + fmtCompactNum(n);
+    const esc = (s) => String(s??'').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+    // Header
+    document.title = `${DATA.account_name} · Reporte Meta Ads · ${DATA.month_label}`;
+    document.getElementById('acct-name').textContent = DATA.account_name;
+    document.getElementById('period').textContent = DATA.month_label;
+    const logo = document.getElementById('logo');
+    if (DATA.logo) logo.src = DATA.logo; else logo.style.display = 'none';
+    document.getElementById('conclusions').innerHTML = DATA.conclusions;
+    document.getElementById('credit').textContent = `Generado el ${new Date().toLocaleDateString('es-AR')} · Meta Ads`;
+
+    // KPIs
+    const k = DATA.kpis;
+    const kpiDefs = [
+      { label: 'Inversión', val: fmtCompactCur(k.spend) },
+      { label: DATA.metric_label, val: fmtN(k.metric) },
+      { label: DATA.cost_label, val: fmtCompactCur(k.cost_per) },
+    ];
+    if (DATA.followers) {
+      const g = DATA.followers.gain;
+      if (g === null || g === undefined) {
+        kpiDefs.push({ label: 'Seguidores IG', val: fmtN(DATA.followers.current) });
+      } else {
+        const sign = g > 0 ? '+' : (g < 0 ? '−' : '');
+        kpiDefs.push({ label: 'Seguidores ganados', val: sign + fmtN(Math.abs(g)) });
+      }
+    }
+    const kpiCards = kpiDefs.map(d =>
+      `<div class="kpi"><div class="k-label">${esc(d.label)}</div><div class="k-val">${d.val}</div></div>`).join('');
+    const kpiSection = document.getElementById('kpi-section');
+    if (DATA.trend && DATA.trend.length) {
+      kpiSection.className = 'kpi-trend';
+      kpiSection.style.gridTemplateColumns = '';
+      kpiSection.innerHTML =
+        `<div class="kpis-col">${kpiCards}</div>` +
+        `<div class="trend-card"><h3>Evolución mensual · Leads e inversión</h3>` +
+        `<div class="trend-box"><canvas id="chartTrend"></canvas></div></div>`;
+    } else {
+      kpiSection.className = 'kpis';
+      kpiSection.style.gridTemplateColumns = `repeat(${kpiDefs.length},1fr)`;
+      kpiSection.innerHTML = kpiCards;
+    }
+
+    // Tabla
+    const headers = ['Anuncio','Descripción','Inversión','Mensajes','Costo por mensaje','Clics','Costo por clic','CTR'];
+    document.getElementById('thead-row').innerHTML = headers.map(h=>`<th>${esc(h)}</th>`).join('');
+    document.getElementById('tbody').innerHTML = DATA.ads.map(a => {
+      const thumb = a.thumb
+        ? `<img class="thumb" src="${a.thumb}" alt="" />`
+        : `<div class="thumb-ph">—</div>`;
+      return `<tr>
+        <td>${thumb}</td>
+        <td class="camp">${esc(a.campaign_label)}<small>${esc(a.ad_type)}</small></td>
+        <td>${fmtCur0(a.spend)}</td>
+        <td>${fmtN(a.messages)}</td>
+        <td>${a.messages ? fmtCur0(a.cost_msg) : '—'}</td>
+        <td>${fmtN(a.clicks)}</td>
+        <td>${a.clicks ? fmtCur0(a.cost_click) : '—'}</td>
+        <td>${fmtN(a.ctr,2)}%</td>
+      </tr>`;
+    }).join('') || `<tr><td colspan="8" style="text-align:center;color:var(--g400);padding:24px">Sin anuncios con datos en el período.</td></tr>`;
+
+    // Glosario
+    const glossary = [
+      ['Inversión','Costo total invertido en Meta Ads.'],
+      ['Mensajes','Conversaciones nuevas iniciadas luego de ver el anuncio.'],
+      ['Costo por mensaje','Costo promedio por mensaje en pesos.'],
+      ['Clics','Cantidad de clics en el anuncio.'],
+      ['Costo por clic','Costo promedio por clic en pesos.'],
+      ['Alcance','Cantidad de cuentas distintas que visualizaron el anuncio.'],
+      ['CTR','Porcentaje de clicks en el anuncio por visualizaciones.'],
+      ...(DATA.followers ? [(DATA.followers.gain === null || DATA.followers.gain === undefined)
+        ? ['Seguidores','Cuentas que siguen el perfil de Instagram al momento del informe.']
+        : ['Seguidores ganados','Seguidores netos sumados en Instagram durante el mes (diferencia con el mes anterior).']] : []),
+    ];
+    document.getElementById('glossary').innerHTML = glossary.map(([t,d]) =>
+      `<div class="row"><dt>${esc(t)}:</dt> <dd>${esc(d)}</dd></div>`).join('');
+
+    // Charts
+    const labels = DATA.daily.map(d => { const x = new Date(d.date+'T00:00:00'); return x.getDate(); });
+    const gridCol = '#f0f0f0';
+    Chart.register(ChartDataLabels);
+    Chart.defaults.font.family = 'Geist';
+    Chart.defaults.devicePixelRatio = 3;  // canvas en alta resolucion -> nitido al imprimir/PDF
+
+    const baseOpts = (tickFmt, tipFmt, dlFmt, dlColor, rot=-90) => ({
+      responsive:true, maintainAspectRatio:false,
+      layout:{ padding:{ top:26 } },
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{label:(c)=>tipFmt(c.parsed.y)}},
+        datalabels:{
+          anchor:'end', align:'end', rotation:rot, offset:2,
+          color:dlColor, font:{family:'Geist', size:rot===0?10:8, weight:'600'},
+          formatter:(v)=> v ? dlFmt(v) : '',
+        },
+      },
+      scales:{
+        x:{ grid:{display:false}, ticks:{font:{family:'Geist',size:10}, color:'#a3a3a3'} },
+        y:{ beginAtZero:true, grid:{color:gridCol}, ticks:{font:{family:'Geist',size:10}, color:'#a3a3a3', callback:tickFmt} },
+      },
+    });
+
+    document.getElementById('chart1-title').textContent = `${DATA.metric_label} por día`;
+    new Chart(document.getElementById('chart1'), {
+      type:'bar',
+      data:{ labels, datasets:[{ data:DATA.daily.map(d=>d.metric), backgroundColor:'#0a72ef', borderRadius:4, maxBarThickness:22 }] },
+      options: baseOpts(v => fmtN(v), v => fmtN(v), v => fmtN(v,0), '#0a72ef'),
+    });
+    new Chart(document.getElementById('chart2'), {
+      type:'bar',
+      data:{ labels, datasets:[{ data:DATA.daily.map(d=>d.spend), backgroundColor:'#171717', borderRadius:4, maxBarThickness:22 }] },
+      options: baseOpts(v => fmtCompactNum(v), v => fmtCur(v), v => fmtCompactNum(v), '#171717'),
+    });
+
+    // Demografia (metrica principal) — se puede ocultar por cuenta (--no-demo)
+    if (DATA.show_demo === false) {
+      document.getElementById('demo-section').style.display = 'none';
+    } else {
+      document.getElementById('demo-gender-title').textContent = `${DATA.metric_label} por género`;
+      document.getElementById('demo-age-title').textContent = `${DATA.metric_label} por edad`;
+      new Chart(document.getElementById('chartGender'), {
+        type:'bar',
+        data:{ labels:DATA.demo.gender.map(d=>d.label), datasets:[{ data:DATA.demo.gender.map(d=>d.metric), backgroundColor:'#0a72ef', borderRadius:4, maxBarThickness:70 }] },
+        options: baseOpts(v => fmtN(v), v => fmtN(v), v => fmtN(v,0), '#0a72ef', 0),
+      });
+      new Chart(document.getElementById('chartAge'), {
+        type:'bar',
+        data:{ labels:DATA.demo.age.map(d=>d.label), datasets:[{ data:DATA.demo.age.map(d=>d.metric), backgroundColor:'#0a72ef', borderRadius:4, maxBarThickness:46 }] },
+        options: baseOpts(v => fmtN(v), v => fmtN(v), v => fmtN(v,0), '#0a72ef', 0),
+      });
+    }
+
+    // Tendencia mensual: barras = Leads, linea = Invertido (Millones)
+    if (DATA.trend && DATA.trend.length) {
+      const t = DATA.trend;
+      new Chart(document.getElementById('chartTrend'), {
+        data:{
+          labels: t.map(r=>r.label),
+          datasets:[
+            { type:'bar', label:'Leads', data:t.map(r=>r.leads), yAxisID:'y',
+              backgroundColor:'#171717', borderRadius:4, maxBarThickness:54, order:2,
+              datalabels:{ anchor:'end', align:'end', rotation:0, offset:2, color:'#171717',
+                font:{family:'Geist', size:14, weight:'700'}, formatter:v=>fmtN(v) } },
+            { type:'line', label:'Invertido (Millones)', data:t.map(r=>r.spend/1e6), yAxisID:'y1',
+              borderColor:'#ff5b4f', backgroundColor:'#ff5b4f', borderWidth:2, tension:0.3,
+              pointRadius:0, order:1, datalabels:{display:false} },
+          ],
+        },
+        options:{
+          responsive:true, maintainAspectRatio:false,
+          layout:{ padding:{ top:28 } },
+          plugins:{
+            legend:{ display:true, position:'top', labels:{ boxWidth:14, font:{family:'Geist', size:11} } },
+            tooltip:{ callbacks:{ label:(c)=> c.dataset.type==='line'
+              ? 'Invertido: ' + fmtCur0(c.parsed.y*1e6)
+              : 'Leads: ' + fmtN(c.parsed.y) } },
+          },
+          scales:{
+            x:{ grid:{display:false}, ticks:{font:{family:'Geist',size:10}, color:'#a3a3a3'} },
+            y:{ beginAtZero:true, grid:{color:gridCol}, ticks:{font:{family:'Geist',size:10}, color:'#a3a3a3', callback:v=>fmtN(v)} },
+            y1:{ beginAtZero:true, position:'right', grid:{drawOnChartArea:false},
+              ticks:{stepSize:1, font:{family:'Geist',size:10}, color:'#a3a3a3', callback:v=>'$'+fmtN(v)+'M'} },
+          },
+        },
+      });
+    }
+
+    // Seguidores de Instagram: evolucion mensual (snapshot por mes)
+    if (DATA.followers && DATA.followers.trend && DATA.followers.trend.length) {
+      document.getElementById('ig-section').style.display = '';
+      document.getElementById('ig-title').textContent = 'Seguidores · @' + DATA.followers.username;
+      const f = DATA.followers.trend;
+      new Chart(document.getElementById('chartFollowers'), {
+        type:'line',
+        data:{ labels:f.map(r=>r.label), datasets:[{ data:f.map(r=>r.count),
+          borderColor:'#0a72ef', backgroundColor:'rgba(10,114,239,0.08)', borderWidth:2,
+          tension:0.3, fill:true, pointRadius:3, pointBackgroundColor:'#0a72ef',
+          datalabels:{ anchor:'end', align:'top', color:'#0a72ef',
+            font:{family:'Geist', size:11, weight:'600'}, formatter:v=>fmtN(v) } }] },
+        options:{
+          responsive:true, maintainAspectRatio:false, layout:{ padding:{ top:24 } },
+          plugins:{ legend:{display:false},
+            tooltip:{ callbacks:{ label:(c)=>'Seguidores: '+fmtN(c.parsed.y) } } },
+          scales:{
+            x:{ grid:{display:false}, ticks:{font:{family:'Geist',size:10}, color:'#a3a3a3'} },
+            y:{ grid:{color:gridCol}, ticks:{font:{family:'Geist',size:10}, color:'#a3a3a3', callback:v=>fmtN(v)} },
+          },
+        },
+      });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+{
+  "_comment": "Mapeo cuenta -> carpeta 'META ADS' en Google Drive (subir con rclone). 'name' es el token del cliente en el nombre del PDF: 202606_<name>_METAADS.pdf. folder_id null = falta la subcarpeta META ADS (crearla en Drive).",
+  "_remote": "metadrive",
+  "accounts": {
+    "4100755920144855": {"client": "Carolina Varela",        "folder_id": null, "name": "CAROLINAVARELA", "note": "la sube el usuario; sin carpeta META ADS mapeada"},
+    "1056862166165944": {"client": "TABOO",                  "folder_id": "1gg2OsAOPNW1ed98hnC4x33K_e1Q_Djdo", "name": "TABOO"},
+    "720469197032249":  {"client": "VSM (explorers)",         "folder_id": "1Nkr2zxo9CVR6oj_0F2s_M33h-m3C1rKR", "name": "VSMEXPLORERS"},
+    "290990484008212":  {"client": "VSM Tradicional",         "folder_id": "1Nkr2zxo9CVR6oj_0F2s_M33h-m3C1rKR", "name": "VSMTRADICIONAL"},
+    "1145206216681663": {"client": "HYPE",                   "folder_id": "1w7CJ-XkUTpeNP4l_8wtmHwO6u5Pt97-e", "name": "HYPE"},
+    "1192531695291401": {"client": "BRUCOR",                 "folder_id": "1n6G8KGEpqJLxWwtanDP5SYseoEdLr8QM", "name": "BRUCOR"},
+    "1668094141003318": {"client": "RIVERA",                 "folder_id": "1SaNqhvoUUawAFXNReMn4BouIfeSyHTLZ", "name": "RIVERA"},
+    "299155633829255":  {"client": "LA TIENDA",              "folder_id": "1Q-sAzduYYI9l8BkycgNwaKQKMuZiIhhv", "name": "LATIENDA"},
+    "1900226163874743": {"client": "FERMIN LARRANAGA",        "folder_id": "1KEdcd8shuQLwwGroMbzrQSdpYleeHkav", "name": "FERMINLARRANAGA"},
+    "1055891816639430": {"client": "OD AMPARO FITE",          "folder_id": "1coRch9v6p8g9z3ri7w0y3_DBV22qpscF", "name": "ODAMPAROFITE"},
+    "3314437138860175": {"client": "CI TEXTIL",              "folder_id": "1R8aqFmB3tYN2AcX4cDRlU-5awCZsb8tW", "name": "CITEXTIL"},
+    "2816534281870230": {"client": "FINTAX",                 "folder_id": "10Cl9JcbbBNdKqM0LPNQTviUcCtQfatyc", "name": "FINTAX"},
+    "1068280604861633": {"client": "SERPA",                  "folder_id": "1IUGKd1dhMW4BtqQU1sKKY5RVBIY1Evx1", "name": "SERPA"},
+    "1372445320756173": {"client": "JM CHEF",                "folder_id": "1TAwRJ7svBEJovcFQMLqHKgyCe5fgJZsq", "name": "JMCHEF"},
+    "1326520806129142": {"client": "Tienda de bebidas",      "folder_id": "1gg2OsAOPNW1ed98hnC4x33K_e1Q_Djdo", "name": "TIENDADEBEBIDAS", "note": "misma carpeta META ADS que TABOO"},
+    "1559612335672365": {"client": "KIBO Consultora",        "folder_id": "1gn6UUFPNPz-9whqmx58gUQ0jH0qkWy_U", "name": "KIBO"},
+    "1406122094777240": {"client": "ODONTOLOGIA HOTZ",       "folder_id": "1gwTGud58wRho_ENg1QTahUL8OgPLsqs_", "name": "ODONTOLOGIAHOTZ"}
+  }
+}

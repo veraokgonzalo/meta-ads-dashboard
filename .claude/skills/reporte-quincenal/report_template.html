@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#ffffff" />
+  <title>Informe quincenal · Portfolio Meta Ads</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --black:#171717; --white:#ffffff;
+      --g100:#fafafa; --g200:#f5f5f5; --g300:#e5e5e5;
+      --g400:#a3a3a3; --g500:#737373; --g600:#525252;
+      --blue:#0a72ef; --red:#ff5b4f; --green:#16a34a; --amber:#d97706;
+      --s-card:0px 0px 0px 1px rgba(0,0,0,0.08),0px 2px 4px rgba(0,0,0,0.04),inset 0px 0px 0px 1px #fafafa;
+      --s-ring:0px 0px 0px 1px rgba(0,0,0,0.08);
+    }
+    html { color-scheme: light; }
+    body { font-family:'Geist',system-ui,sans-serif; font-feature-settings:"liga" 1; background:var(--g100); color:var(--black); -webkit-font-smoothing:antialiased; }
+    .wrap { max-width:1040px; margin:0 auto; padding:28px 24px 64px; }
+
+    .head { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:8px 0 24px; }
+    .head-l .eyebrow { font-size:11px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:var(--g400); margin-bottom:4px; }
+    .head-l h1 { font-size:28px; font-weight:700; letter-spacing:-1.4px; text-wrap:balance; }
+    .head-l .period { font-size:13px; color:var(--g500); margin-top:2px; font-variant-numeric:tabular-nums; }
+    .head-logo { height:48px; width:auto; border-radius:8px; flex-shrink:0; }
+
+    .card { background:var(--white); box-shadow:var(--s-card); border-radius:14px; padding:20px 22px; }
+    section { margin-bottom:18px; }
+    .sec-title { font-size:12px; font-weight:600; letter-spacing:0.04em; text-transform:uppercase; color:var(--g500); margin-bottom:12px; }
+    .concl p { font-size:14px; line-height:1.65; color:var(--g600); text-wrap:pretty; }
+
+    .kpis { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; }
+    .kpi { background:var(--white); box-shadow:var(--s-card); border-radius:14px; padding:18px 20px; }
+    .kpi .k-label { font-size:12px; font-weight:500; color:var(--g500); margin-bottom:8px; }
+    .kpi .k-val { font-size:26px; font-weight:700; letter-spacing:-1px; font-variant-numeric:tabular-nums; }
+
+    .chart-card { background:var(--white); box-shadow:var(--s-card); border-radius:14px; padding:18px 20px; }
+    .chart-card h3 { font-size:13px; font-weight:600; margin-bottom:14px; }
+
+    /* Cuenta */
+    .acct { margin-bottom:16px; }
+    .acct-head { display:flex; align-items:baseline; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:14px; }
+    .acct-head h2 { font-size:19px; font-weight:700; letter-spacing:-0.6px; }
+    .badges { display:flex; gap:6px; }
+    .badge { font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.04em; padding:3px 8px; border-radius:999px; background:var(--g200); color:var(--g600); }
+    .badge.msg { background:rgba(10,114,239,0.10); color:var(--blue); }
+    .badge.traf { background:rgba(22,163,74,0.10); color:var(--green); }
+
+    .mini-kpis { display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:10px; margin-bottom:14px; }
+    .mk { background:var(--g100); box-shadow:var(--s-ring); border-radius:10px; padding:12px 14px; }
+    .mk .l { font-size:11px; color:var(--g500); margin-bottom:5px; }
+    .mk .v { font-size:18px; font-weight:700; letter-spacing:-0.4px; font-variant-numeric:tabular-nums; }
+
+    .analysis { font-size:13.5px; line-height:1.6; color:var(--g600); margin-bottom:14px; text-wrap:pretty; }
+
+    .sug { list-style:none; display:flex; flex-direction:column; gap:8px; margin-bottom:16px; }
+    .sug li { display:flex; gap:10px; align-items:flex-start; font-size:13px; line-height:1.5; color:var(--g600); padding:10px 12px; background:var(--g100); border-radius:10px; box-shadow:var(--s-ring); }
+    .sev { flex-shrink:0; font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; padding:3px 7px; border-radius:6px; margin-top:1px; }
+    .sev.alta { background:rgba(255,91,79,0.12); color:var(--red); }
+    .sev.media { background:rgba(217,119,6,0.12); color:var(--amber); }
+    .sev.baja { background:rgba(22,163,74,0.12); color:var(--green); }
+    .sug .ad-ref { font-weight:600; color:var(--black); }
+
+    table { width:100%; border-collapse:collapse; font-variant-numeric:tabular-nums; }
+    thead th { font-size:11px; font-weight:600; letter-spacing:0.03em; text-transform:uppercase; color:var(--g400); text-align:right; padding:8px 10px; border-bottom:1px solid var(--g300); }
+    thead th:nth-child(1), thead th:nth-child(2) { text-align:left; }
+    tbody td { font-size:12.5px; padding:9px 10px; border-bottom:1px solid var(--g200); text-align:right; }
+    tbody td:nth-child(2) { text-align:left; color:var(--g600); }
+    tbody tr:last-child td { border-bottom:none; }
+    .thumb { width:52px; height:52px; border-radius:8px; object-fit:cover; box-shadow:var(--s-ring); background:var(--g200); display:block; }
+    .thumb-ph { width:52px; height:52px; border-radius:8px; background:var(--g200); display:flex; align-items:center; justify-content:center; color:var(--g400); font-size:10px; }
+    .camp { font-weight:500; color:var(--black); }
+    .camp small { display:block; color:var(--g400); font-weight:400; font-size:11px; }
+    .pill { font-size:10px; font-weight:600; padding:2px 6px; border-radius:5px; }
+    .pill.msg { background:rgba(10,114,239,0.10); color:var(--blue); }
+    .pill.traf { background:rgba(22,163,74,0.10); color:var(--green); }
+    .warn { color:var(--red); font-weight:600; }
+
+    .ref { margin-top:20px; padding-top:14px; border-top:1px solid var(--g300); }
+    .ref h4 { font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.04em; color:var(--g500); margin-bottom:6px; }
+    .ref dl { font-size:12px; line-height:1.3; color:var(--g500); }
+    .ref dt { font-weight:600; color:var(--g600); display:inline; }
+    .ref dd { display:inline; margin:0; }
+    .ref .row { margin-bottom:1px; }
+    .credit { margin-top:20px; font-size:11px; color:var(--g400); text-align:center; }
+
+    @media (max-width:760px) {
+      .kpis { grid-template-columns:1fr 1fr; }
+      .head { flex-direction:column; align-items:flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="head">
+      <div class="head-l">
+        <div class="eyebrow">Informe quincenal · Portfolio Meta Ads</div>
+        <h1>Performance del portfolio</h1>
+        <div class="period" id="period"></div>
+      </div>
+      <img class="head-logo" id="logo" alt="Logo agencia" />
+    </header>
+
+    <section class="card concl">
+      <div class="sec-title">Resumen ejecutivo</div>
+      <p id="summary"></p>
+    </section>
+
+    <section class="kpis" id="kpi-section"></section>
+    <div id="spend-by-cur" style="font-size:13px;color:var(--g500);margin:-6px 0 18px;font-variant-numeric:tabular-nums;"></div>
+
+    <section>
+      <div class="sec-title">Inversión por cuenta · moneda local</div>
+      <div class="chart-card">
+        <div style="position:relative;" id="spend-box"><canvas id="chartSpend"></canvas></div>
+      </div>
+    </section>
+
+    <div id="accounts"></div>
+
+    <footer class="ref">
+      <h4>Referencia</h4>
+      <dl id="glossary"></dl>
+    </footer>
+    <div class="credit" id="credit"></div>
+  </div>
+
+  <script>
+    const DATA = /*__DATA__*/{};
+
+    const fmtN = (n, dec=0) => (n==null?'—':Number(n).toLocaleString('es-AR',{minimumFractionDigits:dec,maximumFractionDigits:dec}));
+    const fmtCur0 = (n) => '$ ' + Math.round(Number(n)||0).toLocaleString('es-AR');
+    const fmtCompactNum = (n) => { n=Number(n)||0; const a=Math.abs(n);
+      if (a>=1e6) return (n/1e6).toLocaleString('es-AR',{maximumFractionDigits:1})+'M';
+      if (a>=1e3) return (n/1e3).toLocaleString('es-AR',{maximumFractionDigits:1})+'k';
+      return n.toLocaleString('es-AR',{maximumFractionDigits:0}); };
+    const fmtCompactCur = (n) => '$' + fmtCompactNum(n);
+    const esc = (s) => String(s??'').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+    document.title = `Informe quincenal · Portfolio · ${DATA.period_label}`;
+    document.getElementById('period').textContent = DATA.period_label;
+    const logo = document.getElementById('logo');
+    if (DATA.logo) logo.src = DATA.logo; else logo.style.display = 'none';
+    document.getElementById('summary').innerHTML = DATA.summary;
+    document.getElementById('credit').textContent = `Generado el ${new Date().toLocaleDateString('es-AR')} · Meta Ads`;
+
+    // KPIs del portfolio (sin total de inversión mezclado entre monedas)
+    const p = DATA.portfolio;
+    const kpiDefs = [
+      { label: 'Cuentas activas', val: fmtN(p.n_accounts) },
+      { label: 'Mensajes', val: fmtN(p.messages) },
+      { label: 'Clics', val: fmtN(p.clicks) },
+      { label: 'CTR promedio', val: fmtN(p.ctr,2)+'%' },
+    ];
+    document.getElementById('kpi-section').innerHTML = kpiDefs.map(d =>
+      `<div class="kpi"><div class="k-label">${esc(d.label)}</div><div class="k-val">${d.val}</div></div>`).join('');
+
+    // Inversión por moneda (línea aparte: no se suman monedas distintas)
+    const spendStr = Object.entries(p.spend_by_currency)
+      .sort((a,b)=>b[1]-a[1])
+      .map(([cur,v]) => `${esc(cur)} ${fmtCompactCur(v)}`).join(' · ');
+    document.getElementById('spend-by-cur').textContent = 'Inversión del período: ' + spendStr;
+
+    // Glosario
+    document.getElementById('glossary').innerHTML = [
+      ['Inversión','Costo total invertido en Meta Ads en el período.'],
+      ['Mensajes','Conversaciones nuevas iniciadas luego de ver el anuncio (campañas de mensajería).'],
+      ['Clics','Cantidad de clics en el anuncio (campañas de tráfico).'],
+      ['CTR','Porcentaje de clics sobre las visualizaciones del anuncio.'],
+      ['Frecuencia','Veces promedio que cada persona vio el anuncio (señal de fatiga si es alta).'],
+      ['Costo por resultado','Inversión dividida por el resultado principal (mensaje o clic) de cada anuncio.'],
+    ].map(([t,d]) => `<div class="row"><dt>${esc(t)}:</dt> <dd>${esc(d)}</dd></div>`).join('');
+
+    // Secciones por cuenta
+    const accHtml = DATA.accounts.map(a => {
+      const t = a.totals;
+      const badges = [];
+      if (a.has_messages) badges.push('<span class="badge msg">Mensajes</span>');
+      if (a.has_traffic)  badges.push('<span class="badge traf">Tráfico</span>');
+
+      const mk = [['Inversión', fmtCompactCur(t.spend)]];
+      if (a.has_messages) mk.push(['Mensajes', fmtN(t.messages)], ['Costo / mensaje', t.messages ? fmtCur0(t.cost_per_msg) : '—']);
+      if (a.has_traffic)  mk.push(['Clics', fmtN(t.clicks)], ['Costo / clic', t.clicks ? fmtCur0(t.cost_per_click) : '—']);
+      mk.push(['CTR', fmtN(t.ctr,2)+'%']);
+      const mkHtml = mk.map(([l,v]) => `<div class="mk"><div class="l">${esc(l)}</div><div class="v">${v}</div></div>`).join('');
+
+      const sug = (a.suggestions||[]).map(s => {
+        const sev = (s.severity||'media').toLowerCase();
+        const ref = s.ad ? `<span class="ad-ref">${esc(s.ad)}:</span> ` : '';
+        return `<li><span class="sev ${sev}">${esc(sev)}</span><span>${ref}${esc(s.text)}</span></li>`;
+      }).join('');
+      const sugBlock = sug
+        ? `<div class="sec-title">Sugerencias</div><ul class="sug">${sug}</ul>`
+        : '';
+
+      const rows = a.ads.map(ad => {
+        const thumb = ad.thumb ? `<img class="thumb" src="${ad.thumb}" alt="" />` : `<div class="thumb-ph">—</div>`;
+        const isMsg = ad.type === 'mensajes';
+        const pill = isMsg ? '<span class="pill msg">Msg</span>' : '<span class="pill traf">Tráf</span>';
+        const freq = ad.frequency || 0;
+        const freqCell = freq >= 3 ? `<span class="warn">${fmtN(freq,1)}</span>` : fmtN(freq,1);
+        return `<tr>
+          <td>${thumb}</td>
+          <td class="camp">${esc(ad.campaign)}<small>${pill} ${esc(ad.ad_type_creative)}</small></td>
+          <td>${fmtCur0(ad.spend)}</td>
+          <td>${fmtN(ad.metric)}</td>
+          <td>${ad.metric ? fmtCur0(ad.cost) : '—'}</td>
+          <td>${fmtN(ad.ctr,2)}%</td>
+          <td>${freqCell}</td>
+        </tr>`;
+      }).join('');
+
+      return `<section class="card acct">
+        <div class="acct-head">
+          <h2>${esc(a.name)}</h2>
+          <div class="badges">${badges.join('')}</div>
+        </div>
+        <div class="mini-kpis">${mkHtml}</div>
+        <div class="analysis">${a.analysis}</div>
+        ${sugBlock}
+        <div class="sec-title">Detalle por anuncio</div>
+        <table>
+          <thead><tr>
+            <th>Anuncio</th><th>Campaña</th><th>Inversión</th>
+            <th>Resultado</th><th>Costo</th><th>CTR</th><th>Frec.</th>
+          </tr></thead>
+          <tbody>${rows || '<tr><td colspan="7" style="text-align:center;color:var(--g400);padding:20px">Sin anuncios con datos.</td></tr>'}</tbody>
+        </table>
+      </section>`;
+    }).join('');
+    document.getElementById('accounts').innerHTML = accHtml;
+
+    // Chart: inversión por cuenta (único canvas)
+    Chart.register(ChartDataLabels);
+    Chart.defaults.font.family = 'Geist';
+    Chart.defaults.devicePixelRatio = 2;
+    const accs = DATA.accounts;
+    const box = document.getElementById('spend-box');
+    box.style.height = Math.max(180, accs.length * 34 + 40) + 'px';
+    new Chart(document.getElementById('chartSpend'), {
+      type:'bar',
+      data:{ labels: accs.map(a=>`${a.name} (${a.currency})`),
+        datasets:[{ data: accs.map(a=>a.totals.spend), backgroundColor:'#0a72ef',
+          borderRadius:4, maxBarThickness:22 }] },
+      options:{
+        indexAxis:'y', responsive:true, maintainAspectRatio:false,
+        layout:{ padding:{ right:54 } },
+        plugins:{ legend:{display:false},
+          tooltip:{callbacks:{label:(c)=>fmtCur0(c.parsed.x)}},
+          datalabels:{ anchor:'end', align:'end', color:'#525252',
+            font:{family:'Geist', size:10, weight:'600'}, formatter:v=>v?fmtCompactCur(v):'' } },
+        scales:{
+          x:{ beginAtZero:true, grid:{color:'#f0f0f0'}, ticks:{font:{size:10}, color:'#a3a3a3', callback:v=>fmtCompactCur(v)} },
+          y:{ grid:{display:false}, ticks:{font:{size:11}, color:'#525252'} },
+        },
+      },
+    });
+  </script>
+</body>
+</html>

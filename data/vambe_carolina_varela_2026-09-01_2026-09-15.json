@@ -1,0 +1,250 @@
+{
+ "account_id": "4100755920144855",
+ "since": "2026-09-01",
+ "until": "2026-09-15",
+ "timezone": "America/Santiago",
+ "extracted_at": "2026-09-23",
+ "query": ".claude/skills/reporte-meta-vambe/vambe_query.sql",
+ "rows": [
+  {
+   "week_idx": 0,
+   "ad_id": "120246364072950327",
+   "arrived": 1,
+   "booked": 1,
+   "attended": 1,
+   "no_show": 0,
+   "pending": 0,
+   "cancelled": 0
+  },
+  {
+   "week_idx": 0,
+   "ad_id": "120247805422190327",
+   "arrived": 5,
+   "booked": 3,
+   "attended": 2,
+   "no_show": 0,
+   "pending": 0,
+   "cancelled": 1
+  },
+  {
+   "week_idx": 0,
+   "ad_id": "120248249887750327",
+   "arrived": 15,
+   "booked": 0,
+   "attended": 0,
+   "no_show": 0,
+   "pending": 0,
+   "cancelled": 0
+  },
+  {
+   "week_idx": 0,
+   "ad_id": "120248250804720327",
+   "arrived": 3,
+   "booked": 0,
+   "attended": 0,
+   "no_show": 0,
+   "pending": 0,
+   "cancelled": 0
+  },
+  {
+   "week_idx": 0,
+   "ad_id": "120248383170660327",
+   "arrived": 34,
+   "booked": 6,
+   "attended": 0,
+   "no_show": 0,
+   "pending": 3,
+   "cancelled": 3
+  },
+  {
+   "week_idx": 0,
+   "ad_id": "120248592137570327",
+   "arrived": 10,
+   "booked": 3,
+   "attended": 1,
+   "no_show": 0,
+   "pending": 0,
+   "cancelled": 2
+  },
+  {
+   "week_idx": 0,
+   "ad_id": "120248710500580327",
+   "arrived": 1,
+   "booked": 0,
+   "attended": 0,
+   "no_show": 0,
+   "pending": 0,
+   "cancelled": 0
+  },
+  {
+   "week_idx": 0,
+   "ad_id": "120248710500600327",
+   "arrived": 1,
+   "booked": 0,
+   "attended": 0,
+   "no_show": 0,
+   "pending": 0,
+   "cancelled": 0
+  },
+  {
+   "week_idx": 0,
+   "ad_id": "120248710500610327",
+   "arrived": 1,
+   "booked": 0,
+   "attended": 0,
+   "no_show": 0,
+   "pending": 0,
+   "cancelled": 0
+  },
+  {
+   "week_idx": 0,
+   "ad_id": "120248948168600327",
+   "arrived": 2,
+   "booked": 0,
+   "attended": 0,
+   "no_show": 0,
+   "pending": 0,
+   "cancelled": 0
+  },
+  {
+   "week_idx": 0,
+   "ad_id": "120248948315030327",
+   "arrived": 1,
+   "booked": 0,
+   "attended": 0,
+   "no_show": 0,
+   "pending": 0,
+   "cancelled": 0
+  },
+  {
+   "week_idx": 0,
+   "ad_id": "120249381861100327",
+   "arrived": 11,
+   "booked": 2,
+   "attended": 1,
+   "no_show": 0,
+   "pending": 0,
+   "cancelled": 1
+  },
+  {
+   "week_idx": 0,
+   "ad_id": "120249394851340327",
+   "arrived": 11,
+   "booked": 2,
+   "attended": 0,
+   "no_show": 0,
+   "pending": 1,
+   "cancelled": 1
+  },
+  {
+   "week_idx": 1,
+   "ad_id": "120248249887750327",
+   "arrived": 2,
+   "booked": 0,
+   "attended": 0,
+   "no_show": 0,
+   "pending": 0,
+   "cancelled": 0
+  },
+  {
+   "week_idx": 1,
+   "ad_id": "120248250804720327",
+   "arrived": 8,
+   "booked": 1,
+   "attended": 0,
+   "no_show": 0,
+   "pending": 0,
+   "cancelled": 1
+  },
+  {
+   "week_idx": 1,
+   "ad_id": "120248383170660327",
+   "arrived": 48,
+   "booked": 3,
+   "attended": 0,
+   "no_show": 1,
+   "pending": 1,
+   "cancelled": 1
+  },
+  {
+   "week_idx": 1,
+   "ad_id": "120248948147290327",
+   "arrived": 2,
+   "booked": 0,
+   "attended": 0,
+   "no_show": 0,
+   "pending": 0,
+   "cancelled": 0
+  },
+  {
+   "week_idx": 1,
+   "ad_id": "120248948168600327",
+   "arrived": 1,
+   "booked": 0,
+   "attended": 0,
+   "no_show": 0,
+   "pending": 0,
+   "cancelled": 0
+  },
+  {
+   "week_idx": 1,
+   "ad_id": "120249381861100327",
+   "arrived": 6,
+   "booked": 2,
+   "attended": 2,
+   "no_show": 0,
+   "pending": 0,
+   "cancelled": 0
+  },
+  {
+   "week_idx": 1,
+   "ad_id": "120249394851340327",
+   "arrived": 2,
+   "booked": 0,
+   "attended": 0,
+   "no_show": 0,
+   "pending": 0,
+   "cancelled": 0
+  },
+  {
+   "week_idx": 1,
+   "ad_id": "120249475183160327",
+   "arrived": 26,
+   "booked": 3,
+   "attended": 1,
+   "no_show": 0,
+   "pending": 1,
+   "cancelled": 1
+  },
+  {
+   "week_idx": 2,
+   "ad_id": "120248249887750327",
+   "arrived": 3,
+   "booked": 0,
+   "attended": 0,
+   "no_show": 0,
+   "pending": 0,
+   "cancelled": 0
+  },
+  {
+   "week_idx": 2,
+   "ad_id": "120248383170660327",
+   "arrived": 12,
+   "booked": 1,
+   "attended": 1,
+   "no_show": 0,
+   "pending": 0,
+   "cancelled": 0
+  },
+  {
+   "week_idx": 2,
+   "ad_id": "120249475183160327",
+   "arrived": 8,
+   "booked": 0,
+   "attended": 0,
+   "no_show": 0,
+   "pending": 0,
+   "cancelled": 0
+  }
+ ]
+}

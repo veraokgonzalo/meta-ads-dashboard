@@ -9,5 +9,6 @@ __pycache__/
 .DS_Store
 Thumbs.db
 
-# Claude
-.claude/
+# Claude: se versionan solo las skills; el resto (settings locales, launch) queda fuera
+.claude/*
+!.claude/skills/
