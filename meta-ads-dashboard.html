@@ -117,6 +117,7 @@
     .camp-name-cell { display:flex; align-items:center; gap:6px; padding-left:20px; }
     .camp-dash { width:10px; height:1px; background:var(--g300); flex-shrink:0; }
     .ent-row { cursor:pointer; user-select:none; }
+    .ad-thumb { width:32px; height:32px; border-radius:5px; object-fit:cover; background:var(--g200); box-shadow:var(--s-ring); flex-shrink:0; display:inline-block; }
     .ent-row.open .chevron { transform:rotate(180deg); }
 
     /* Campaign dot cell */
@@ -460,7 +461,7 @@ async function toggleCampaigns(acctId, currency) {
       id: c.id, name: c.name,
       curr: currMap[c.id] || null,
       comp: compMap[c.id] || null,
-    }));
+    })).sort((a, b) => (toNum(b.curr?.spend) ?? 0) - (toNum(a.curr?.spend) ?? 0));
 
     campaignCache.set(acctId, { campData, currency });
     content.innerHTML = buildCampaignRows(campData, currency);
@@ -484,7 +485,7 @@ const LEVELS = {
 const childCache = new Map(); // `${level}:${parentId}` → [{ id, name, curr, comp }]
 
 // Fila de campaña / conjunto / anuncio. Si tiene childLevel, es clickeable y despliega el siguiente nivel.
-function entityRow({ id, name, curr, comp, currency, indent, childLevel, parentId = '' }) {
+function entityRow({ id, name, curr, comp, currency, indent, childLevel, parentId = '', thumb }) {
   const cSpend  = toNum(curr?.spend);
   const pSpend  = toNum(comp?.spend);
   const cImpr   = toNum(curr?.impressions);
@@ -499,8 +500,12 @@ function entityRow({ id, name, curr, comp, currency, indent, childLevel, parentI
   const attrs = childLevel
     ? `id="ent-${id}" class="ent-row" onclick="toggleChildren('${id}', '${childLevel}', '${currency}')"`
     : '';
+  // Miniatura solo en anuncios (thumb === undefined en campañas y conjuntos)
+  const thumbHtml = thumb === undefined ? ''
+    : thumb ? `<img class="ad-thumb" src="${esc(thumb)}" alt="" loading="lazy">`
+    : `<span class="ad-thumb"></span>`;
   return `<tr ${attrs} data-parent="${parentId}">
-      <td><div class="camp-name-cell" style="padding-left:${indent}px"><span class="camp-dash"></span><span style="font-size:12px;font-weight:500;color:var(--black)">${esc(name)}</span>${chevron}</div></td>
+      <td><div class="camp-name-cell" style="padding-left:${indent}px"><span class="camp-dash"></span>${thumbHtml}<span style="font-size:12px;font-weight:500;color:var(--black)">${esc(name)}</span>${chevron}</div></td>
       <td></td>
       ${metricCell(cSpend,  pSpend,  v => fmtCur(v, currency), 'spend')}
       ${metricCell(cConv,   pConv,   v => fmtN(v))}
@@ -521,6 +526,20 @@ async function fetchChildInsights(parentId, level, since, until) {
   const map = {};
   for (const d of r.data || []) map[d[idKey]] = d;
   return map;
+}
+
+// Miniatura del creativo de cada anuncio. Si falla, se muestran sin miniatura.
+async function fetchAdThumbnails(adIds) {
+  const thumbs = {};
+  try {
+    for (let i = 0; i < adIds.length; i += 50) {
+      const r = await apiFetch('', { ids: adIds.slice(i, i + 50).join(','), fields: 'creative{thumbnail_url}' });
+      for (const [id, ad] of Object.entries(r)) thumbs[id] = ad.creative?.thumbnail_url || '';
+    }
+  } catch (e) {
+    console.warn('Miniaturas no disponibles:', e.message);
+  }
+  return thumbs;
 }
 
 // Quita del DOM las filas hijas (y nietas) de una fila
@@ -560,6 +579,10 @@ async function toggleChildren(parentId, level, currency) {
         .filter(d => (toNum(d.spend) ?? 0) > 0)
         .sort((a, b) => toNum(b.spend) - toNum(a.spend))
         .map(d => ({ id: d[idKey], name: d[nameKey], curr: d, comp: compMap[d[idKey]] || null }));
+      if (level === 'ad') {
+        const thumbs = await fetchAdThumbnails(items.map(it => it.id));
+        for (const it of items) it.thumb = thumbs[it.id] || '';
+      }
       childCache.set(key, items);
     }
     const items = childCache.get(key);
