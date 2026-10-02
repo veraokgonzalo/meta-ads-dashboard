@@ -116,6 +116,8 @@
     .inner-table td { padding:10px 16px; vertical-align:middle; }
     .camp-name-cell { display:flex; align-items:center; gap:6px; padding-left:20px; }
     .camp-dash { width:10px; height:1px; background:var(--g300); flex-shrink:0; }
+    .ent-row { cursor:pointer; user-select:none; }
+    .ent-row.open .chevron { transform:rotate(180deg); }
 
     /* Campaign dot cell */
     .camp-cell { display:flex; align-items:center; gap:7px; }
@@ -469,19 +471,36 @@ async function toggleCampaigns(acctId, currency) {
 
 function buildCampaignRows(campData, currency) {
   if (!campData.length) return `<tr><td colspan="7" style="padding:14px 36px;color:var(--g400);font-size:12px;">Sin campañas activas.</td></tr>`;
-  return campData.map(({ name, curr, comp }) => {
-    const cSpend  = toNum(curr?.spend);
-    const pSpend  = toNum(comp?.spend);
-    const cImpr   = toNum(curr?.impressions);
-    const pImpr   = toNum(comp?.impressions);
-    const cClicks = toNum(curr?.clicks);
-    const pClicks = toNum(comp?.clicks);
-    const cCtr    = toNum(curr?.ctr);
-    const pCtr    = toNum(comp?.ctr);
-    const cConv   = extractAction(curr, 'onsite_conversion.messaging_conversation_started_7d');
-    const pConv   = extractAction(comp,  'onsite_conversion.messaging_conversation_started_7d');
-    return `<tr>
-      <td><div class="camp-name-cell"><span class="camp-dash"></span><span style="font-size:12px;font-weight:500;color:var(--black)">${esc(name)}</span></div></td>
+  return campData.map(({ id, name, curr, comp }) =>
+    entityRow({ id, name, curr, comp, currency, indent: 20, childLevel: 'adset' })
+  ).join('');
+}
+
+// ── Conjuntos de anuncios y anuncios ──────────────────────────────────────────
+const LEVELS = {
+  adset: { idKey: 'adset_id', nameKey: 'adset_name', indent: 40, childLevel: 'ad', empty: 'Sin conjuntos de anuncios con gasto en el período.' },
+  ad:    { idKey: 'ad_id',    nameKey: 'ad_name',    indent: 60, childLevel: null, empty: 'Sin anuncios con gasto en el período.' },
+};
+const childCache = new Map(); // `${level}:${parentId}` → [{ id, name, curr, comp }]
+
+// Fila de campaña / conjunto / anuncio. Si tiene childLevel, es clickeable y despliega el siguiente nivel.
+function entityRow({ id, name, curr, comp, currency, indent, childLevel, parentId = '' }) {
+  const cSpend  = toNum(curr?.spend);
+  const pSpend  = toNum(comp?.spend);
+  const cImpr   = toNum(curr?.impressions);
+  const pImpr   = toNum(comp?.impressions);
+  const cClicks = toNum(curr?.clicks);
+  const pClicks = toNum(comp?.clicks);
+  const cCtr    = toNum(curr?.ctr);
+  const pCtr    = toNum(comp?.ctr);
+  const cConv   = extractAction(curr, 'onsite_conversion.messaging_conversation_started_7d');
+  const pConv   = extractAction(comp,  'onsite_conversion.messaging_conversation_started_7d');
+  const chevron = childLevel ? `<svg class="chevron" width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>` : '';
+  const attrs = childLevel
+    ? `id="ent-${id}" class="ent-row" onclick="toggleChildren('${id}', '${childLevel}', '${currency}')"`
+    : '';
+  return `<tr ${attrs} data-parent="${parentId}">
+      <td><div class="camp-name-cell" style="padding-left:${indent}px"><span class="camp-dash"></span><span style="font-size:12px;font-weight:500;color:var(--black)">${esc(name)}</span>${chevron}</div></td>
       <td></td>
       ${metricCell(cSpend,  pSpend,  v => fmtCur(v, currency), 'spend')}
       ${metricCell(cConv,   pConv,   v => fmtN(v))}
@@ -489,7 +508,72 @@ function buildCampaignRows(campData, currency) {
       ${metricCell(cClicks, pClicks, v => fmtN(v))}
       ${metricCell(cCtr,    pCtr,    v => fmtN(v, 2) + '&nbsp;%', 'pp')}
     </tr>`;
-  }).join('');
+}
+
+async function fetchChildInsights(parentId, level, since, until) {
+  const { idKey, nameKey } = LEVELS[level];
+  const r = await apiFetch(`${parentId}/insights`, {
+    level,
+    fields: `${idKey},${nameKey},spend,impressions,clicks,ctr,actions`,
+    time_range: JSON.stringify({ since, until }),
+    limit: 200,
+  });
+  const map = {};
+  for (const d of r.data || []) map[d[idKey]] = d;
+  return map;
+}
+
+// Quita del DOM las filas hijas (y nietas) de una fila
+function removeDescendants(parentId) {
+  document.querySelectorAll(`tr[data-parent="${parentId}"]`).forEach(tr => {
+    if (tr.id) removeDescendants(tr.id.replace('ent-', ''));
+    tr.remove();
+  });
+}
+
+async function toggleChildren(parentId, level, currency) {
+  const row = document.getElementById(`ent-${parentId}`);
+  const { idKey, nameKey, indent, childLevel, empty } = LEVELS[level];
+
+  if (row.classList.contains('open')) {
+    row.classList.remove('open');
+    removeDescendants(parentId);
+    return;
+  }
+  row.classList.add('open');
+
+  const msgRow = (html, color) => `<tr data-parent="${parentId}"><td colspan="7" style="padding:10px 16px 10px ${indent + 16}px;color:${color};font-size:12px;">${html}</td></tr>`;
+  row.insertAdjacentHTML('afterend', msgRow(`<span class="spin dark" style="display:inline-block;margin-right:8px;vertical-align:middle"></span>Cargando…`, 'var(--g400)'));
+  const loading = row.nextElementSibling;
+
+  const key = `${level}:${parentId}`;
+  let html;
+  try {
+    if (!childCache.has(key)) {
+      const [currMap, compRaw] = await Promise.all([
+        fetchChildInsights(parentId, level, CURR_SINCE, CURR_UNTIL),
+        fetchChildInsights(parentId, level, COMP_SINCE, COMP_UNTIL),
+      ]);
+      const compMap = {};
+      for (const [k, v] of Object.entries(compRaw)) compMap[k] = IS_AVG7 ? scaleInsights(v, 7) : v;
+      const items = Object.values(currMap)
+        .filter(d => (toNum(d.spend) ?? 0) > 0)
+        .sort((a, b) => toNum(b.spend) - toNum(a.spend))
+        .map(d => ({ id: d[idKey], name: d[nameKey], curr: d, comp: compMap[d[idKey]] || null }));
+      childCache.set(key, items);
+    }
+    const items = childCache.get(key);
+    html = items.length
+      ? items.map(it => entityRow({ ...it, currency, indent, childLevel, parentId })).join('')
+      : msgRow(empty, 'var(--g400)');
+  } catch (e) {
+    html = msgRow(`Error: ${esc(e.message)}`, 'var(--red)');
+  }
+
+  // Si se colapsó mientras cargaba, no insertar nada
+  if (!loading.isConnected) return;
+  loading.insertAdjacentHTML('afterend', html);
+  loading.remove();
 }
 
 // Divide cada métrica numérica de un insight por N (para calcular promedios)
@@ -604,6 +688,7 @@ async function loadDash() {
   CURR_UNTIL = mainUntil;
   IS_AVG7    = (MODE === 'yesterday_vs_avg7');
   campaignCache.clear();
+  childCache.clear();
 
   document.getElementById('dash-title').textContent = titleText;
   document.getElementById('dash-sub').textContent   = subText;
