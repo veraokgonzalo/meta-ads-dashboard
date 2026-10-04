@@ -117,6 +117,7 @@
     .camp-name-cell { display:flex; align-items:center; gap:6px; padding-left:20px; }
     .camp-dash { width:10px; height:1px; background:var(--g300); flex-shrink:0; }
     .ent-row { cursor:pointer; user-select:none; }
+    .ent-sub { font-size:10.5px; color:var(--g400); margin-top:2px; }
     .ad-thumb { width:32px; height:32px; border-radius:5px; object-fit:cover; background:var(--g200); box-shadow:var(--s-ring); flex-shrink:0; display:inline-block; }
     .ent-row.open .chevron { transform:rotate(180deg); }
 
@@ -473,19 +474,18 @@ async function toggleCampaigns(acctId, currency) {
 function buildCampaignRows(campData, currency) {
   if (!campData.length) return `<tr><td colspan="7" style="padding:14px 36px;color:var(--g400);font-size:12px;">Sin campañas activas.</td></tr>`;
   return campData.map(({ id, name, curr, comp }) =>
-    entityRow({ id, name, curr, comp, currency, indent: 20, childLevel: 'adset' })
+    entityRow({ id, name, curr, comp, currency, indent: 20, childLevel: 'ad' })
   ).join('');
 }
 
-// ── Conjuntos de anuncios y anuncios ──────────────────────────────────────────
+// ── Anuncios ──────────────────────────────────────────────────────────────────
 const LEVELS = {
-  adset: { idKey: 'adset_id', nameKey: 'adset_name', indent: 40, childLevel: 'ad', empty: 'Sin conjuntos de anuncios con gasto en el período.' },
-  ad:    { idKey: 'ad_id',    nameKey: 'ad_name',    indent: 60, childLevel: null, empty: 'Sin anuncios con gasto en el período.' },
+  ad: { idKey: 'ad_id', nameKey: 'ad_name', extraFields: 'adset_name', indent: 40, childLevel: null, empty: 'Sin anuncios con gasto en el período.' },
 };
-const childCache = new Map(); // `${level}:${parentId}` → [{ id, name, curr, comp }]
+const childCache = new Map(); // `${level}:${parentId}` → [{ id, name, subtitle, curr, comp, thumb }]
 
-// Fila de campaña / conjunto / anuncio. Si tiene childLevel, es clickeable y despliega el siguiente nivel.
-function entityRow({ id, name, curr, comp, currency, indent, childLevel, parentId = '', thumb }) {
+// Fila de campaña / anuncio. Si tiene childLevel, es clickeable y despliega el siguiente nivel.
+function entityRow({ id, name, subtitle, curr, comp, currency, indent, childLevel, parentId = '', thumb }) {
   const cSpend  = toNum(curr?.spend);
   const pSpend  = toNum(comp?.spend);
   const cImpr   = toNum(curr?.impressions);
@@ -500,12 +500,13 @@ function entityRow({ id, name, curr, comp, currency, indent, childLevel, parentI
   const attrs = childLevel
     ? `id="ent-${id}" class="ent-row" onclick="toggleChildren('${id}', '${childLevel}', '${currency}')"`
     : '';
-  // Miniatura solo en anuncios (thumb === undefined en campañas y conjuntos)
+  // Miniatura solo en anuncios (thumb === undefined en campañas)
   const thumbHtml = thumb === undefined ? ''
     : thumb ? `<img class="ad-thumb" src="${esc(thumb)}" alt="" loading="lazy">`
     : `<span class="ad-thumb"></span>`;
+  const subHtml = subtitle ? `<div class="ent-sub">${esc(subtitle)}</div>` : '';
   return `<tr ${attrs} data-parent="${parentId}">
-      <td><div class="camp-name-cell" style="padding-left:${indent}px"><span class="camp-dash"></span>${thumbHtml}<span style="font-size:12px;font-weight:500;color:var(--black)">${esc(name)}</span>${chevron}</div></td>
+      <td><div class="camp-name-cell" style="padding-left:${indent}px"><span class="camp-dash"></span>${thumbHtml}<div><div style="font-size:12px;font-weight:500;color:var(--black)">${esc(name)}</div>${subHtml}</div>${chevron}</div></td>
       <td></td>
       ${metricCell(cSpend,  pSpend,  v => fmtCur(v, currency), 'spend')}
       ${metricCell(cConv,   pConv,   v => fmtN(v))}
@@ -516,10 +517,10 @@ function entityRow({ id, name, curr, comp, currency, indent, childLevel, parentI
 }
 
 async function fetchChildInsights(parentId, level, since, until) {
-  const { idKey, nameKey } = LEVELS[level];
+  const { idKey, nameKey, extraFields } = LEVELS[level];
   const r = await apiFetch(`${parentId}/insights`, {
     level,
-    fields: `${idKey},${nameKey},spend,impressions,clicks,ctr,actions`,
+    fields: `${idKey},${nameKey},${extraFields},spend,impressions,clicks,ctr,actions`,
     time_range: JSON.stringify({ since, until }),
     limit: 200,
   });
@@ -578,7 +579,7 @@ async function toggleChildren(parentId, level, currency) {
       const items = Object.values(currMap)
         .filter(d => (toNum(d.spend) ?? 0) > 0)
         .sort((a, b) => toNum(b.spend) - toNum(a.spend))
-        .map(d => ({ id: d[idKey], name: d[nameKey], curr: d, comp: compMap[d[idKey]] || null }));
+        .map(d => ({ id: d[idKey], name: d[nameKey], subtitle: d.adset_name, curr: d, comp: compMap[d[idKey]] || null }));
       if (level === 'ad') {
         const thumbs = await fetchAdThumbnails(items.map(it => it.id));
         for (const it of items) it.thumb = thumbs[it.id] || '';
