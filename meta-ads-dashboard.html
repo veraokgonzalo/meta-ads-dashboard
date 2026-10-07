@@ -127,6 +127,7 @@
     .dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
     .dot.green { background:var(--green); box-shadow:0 0 0 2px rgba(22,163,74,0.2); }
     .dot.red   { background:var(--red);   box-shadow:0 0 0 2px rgba(255,91,79,0.2); }
+    .dot.gray  { background:var(--g400);  box-shadow:0 0 0 2px rgba(163,163,163,0.2); }
     .camp-count { font-family:'Geist Mono',monospace; font-size:12px; font-weight:500; font-variant-numeric:tabular-nums; }
     .camp-none  { font-size:11px; color:var(--red); }
     .acct-status { font-size:10.5px; font-weight:500; margin-top:3px; }
@@ -306,10 +307,10 @@ function fmtCur(n, cur = 'ARS') {
   try {
     return new Intl.NumberFormat('es-AR', {
       style: 'currency', currency: cur,
-      minimumFractionDigits: 2, maximumFractionDigits: 2
+      minimumFractionDigits: 0, maximumFractionDigits: 0
     }).format(n);
   } catch {
-    return `${cur} ${fmtN(n, 2)}`;
+    return `${cur} ${fmtN(n)}`;
   }
 }
 
@@ -519,7 +520,7 @@ const LEVELS = {
 const childCache = new Map(); // `${level}:${parentId}` → [{ id, name, subtitle, curr, comp, thumb }]
 
 // Fila de campaña / anuncio. Si tiene childLevel, es clickeable y despliega el siguiente nivel.
-function entityRow({ id, name, subtitle, budget, curr, comp, currency, indent, childLevel, parentId = '', thumb }) {
+function entityRow({ id, name, subtitle, budget, curr, comp, currency, indent, childLevel, parentId = '', thumb, active }) {
   const cSpend  = toNum(curr?.spend);
   const pSpend  = toNum(comp?.spend);
   const cClicks = toNum(curr?.clicks);
@@ -538,9 +539,11 @@ function entityRow({ id, name, subtitle, budget, curr, comp, currency, indent, c
   const thumbHtml = thumb === undefined ? ''
     : thumb ? `<img class="ad-thumb" src="${esc(thumb)}" alt="" loading="lazy">`
     : `<span class="ad-thumb"></span>`;
+  // Punto de estado solo en anuncios: verde activo, gris no activo
+  const dotHtml = active === undefined ? '' : `<span class="dot ${active ? 'green' : 'gray'}" title="${active ? 'Activo' : 'No activo'}"></span>`;
   const subHtml = subtitle ? `<div class="ent-sub">${esc(subtitle)}</div>` : '';
   return `<tr ${attrs} data-parent="${parentId}">
-      <td><div class="camp-name-cell" style="padding-left:${indent}px"><span class="camp-dash"></span>${thumbHtml}<div><div style="font-size:12px;font-weight:500;color:var(--black)">${esc(name)}</div>${subHtml}</div>${chevron}</div></td>
+      <td><div class="camp-name-cell" style="padding-left:${indent}px"><span class="camp-dash"></span>${dotHtml}${thumbHtml}<div><div style="font-size:12px;font-weight:500;color:var(--black)">${esc(name)}</div>${subHtml}</div>${chevron}</div></td>
       <td></td>
       ${metricCell(cSpend,  pSpend,  v => fmtCur(v, currency), 'spend')}
       ${budget === undefined ? '<td></td>' : budgetCell(budget, currency)}
@@ -564,18 +567,18 @@ async function fetchChildInsights(parentId, level, since, until) {
   return map;
 }
 
-// Miniatura del creativo de cada anuncio. Si falla, se muestran sin miniatura.
-async function fetchAdThumbnails(adIds) {
-  const thumbs = {};
+// Miniatura del creativo y estado de cada anuncio. Si falla, se muestran sin miniatura ni estado.
+async function fetchAdDetails(adIds) {
+  const details = {};
   try {
     for (let i = 0; i < adIds.length; i += 50) {
-      const r = await apiFetch('', { ids: adIds.slice(i, i + 50).join(','), fields: 'creative{thumbnail_url}' });
-      for (const [id, ad] of Object.entries(r)) thumbs[id] = ad.creative?.thumbnail_url || '';
+      const r = await apiFetch('', { ids: adIds.slice(i, i + 50).join(','), fields: 'effective_status,creative{thumbnail_url}' });
+      for (const [id, ad] of Object.entries(r)) details[id] = { thumb: ad.creative?.thumbnail_url || '', active: ad.effective_status === 'ACTIVE' };
     }
   } catch (e) {
     console.warn('Miniaturas no disponibles:', e.message);
   }
-  return thumbs;
+  return details;
 }
 
 // Quita del DOM las filas hijas (y nietas) de una fila
@@ -616,8 +619,11 @@ async function toggleChildren(parentId, level, currency) {
         .sort((a, b) => toNum(b.spend) - toNum(a.spend))
         .map(d => ({ id: d[idKey], name: d[nameKey], subtitle: d.adset_name, curr: d, comp: compMap[d[idKey]] || null }));
       if (level === 'ad') {
-        const thumbs = await fetchAdThumbnails(items.map(it => it.id));
-        for (const it of items) it.thumb = thumbs[it.id] || '';
+        const details = await fetchAdDetails(items.map(it => it.id));
+        for (const it of items) {
+          it.thumb  = details[it.id]?.thumb || '';
+          it.active = details[it.id]?.active;
+        }
       }
       childCache.set(key, items);
     }
