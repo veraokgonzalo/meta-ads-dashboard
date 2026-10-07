@@ -61,7 +61,7 @@
     .auth-err { display:none; background:#fef2f2; color:#7f1d1d; font-size:13px; border-radius:8px; padding:10px 14px; margin-bottom:14px; box-shadow:0 0 0 1px rgba(239,68,68,0.15); line-height:1.5; }
 
     /* Page */
-    .page { max-width:1020px; margin:0 auto; padding:36px 28px 72px; }
+    .page { max-width:1160px; margin:0 auto; padding:36px 28px 72px; }
     .dash-header { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:28px; flex-wrap:wrap; }
     .dash-eyebrow { font-size:11px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:var(--g400); margin-bottom:6px; }
     .dash-title { font-size:24px; font-weight:700; letter-spacing:-1.3px; line-height:1.15; text-wrap:balance; }
@@ -139,6 +139,28 @@
     @media (max-width:680px) {
       .topbar,.page,#auth { padding-left:16px; padding-right:16px; }
       .dash-title { font-size:20px; }
+      .dash-actions, .seg { flex-wrap:wrap; }
+
+      /* Tabla → tarjetas: sin scroll propio, la página scrollea entera */
+      .table-card { overflow-x:visible; }
+      .table-card table { min-width:0; }
+      .table-card thead { display:none; }
+      .table-card table, .table-card tbody, .table-card tr, .table-card td { display:block; width:100%; }
+      .table-card .expand-row { display:none; }
+      .table-card .expand-row.open { display:block; }
+      .table-card tbody tr:not(.expand-row) { display:grid; grid-template-columns:1fr 1fr; gap:12px 16px; padding:14px 16px; }
+      .table-card tbody tr:not(.expand-row) > td { padding:0; }
+      .table-card tbody tr:not(.expand-row) > td:nth-child(-n+2), .table-card td[colspan] { grid-column:1/-1; }
+      .table-card td:empty { display:none; }
+      .table-card td.mc, .table-card .na { text-align:left; }
+      .table-card td.mc::before { display:block; font-size:10px; font-weight:600; letter-spacing:0.07em; text-transform:uppercase; color:var(--g400); margin-bottom:3px; }
+      .table-card td.mc:nth-child(3)::before { content:'Importe gastado'; }
+      .table-card td.mc:nth-child(4)::before { content:'Presupuesto diario'; }
+      .table-card td.mc:nth-child(5)::before { content:'Conv. comenzadas'; }
+      .table-card td.mc:nth-child(6)::before { content:'Costo por mensaje'; }
+      .table-card td.mc:nth-child(7)::before { content:'Clics (todos)'; }
+      .table-card td.mc:nth-child(8)::before { content:'CTR (todos)'; }
+      .camp-name-cell { padding-left:0; }
     }
     @media (prefers-reduced-motion:reduce) { *,.spin { animation:none !important; transition:none !important; } }
   </style>
@@ -220,8 +242,9 @@
             <th>Cuenta</th>
             <th>Campañas&nbsp;Activas</th>
             <th class="r">Importe&nbsp;Gastado</th>
+            <th class="r">Presupuesto&nbsp;Diario</th>
             <th class="r">Conv.&nbsp;Comenzadas</th>
-            <th class="r">Impresiones</th>
+            <th class="r">Costo&nbsp;por&nbsp;Mensaje</th>
             <th class="r">Clics&nbsp;(todos)</th>
             <th class="r">CTR&nbsp;(todos)</th>
           </tr>
@@ -232,7 +255,9 @@
 
     <div class="note">
       <p><strong>Campañas Activas</strong> — Campañas con <code>effective_status = ACTIVE</code> en este momento.</p>
+      <p><strong>Presupuesto Diario</strong> — Configuración actual de las campañas activas: el presupuesto de la campaña o, si no tiene, la suma de sus conjuntos de anuncios activos. Las campañas con presupuesto total no suman.</p>
       <p><strong>Conv. Comenzadas</strong> — <code>messaging_conversation_started_7d</code>: conversaciones iniciadas desde el anuncio vía Messenger o Instagram&nbsp;DM.</p>
+      <p><strong>Costo por Mensaje</strong> — Importe gastado ÷ conversaciones comenzadas.</p>
       <p id="note-dates"></p>
     </div>
   </div>
@@ -345,6 +370,16 @@ function metricCell(curr, prev, fmt, colorMode = 'normal') {
   </td>`;
 }
 
+const NA_CELL = `<td class="mc"><span class="na">—</span></td>`;
+
+function budgetCell(v, currency) {
+  return v == null ? NA_CELL : `<td class="mc"><span class="mv">${fmtCur(v, currency)}</span></td>`;
+}
+
+function costPerMsg(spend, conv) {
+  return spend != null && conv ? spend / conv : null;
+}
+
 function acctStatusLabel(status) {
   const map = {
     2:   { text: 'Deshabilitada',     color: 'var(--red)' },
@@ -389,16 +424,34 @@ async function fetchInsights(accountId, since, until) {
   }
 }
 
-async function fetchActiveCampaigns(accountId) {
+// Monedas sin decimales: la API devuelve los presupuestos en unidades, no en centavos
+const NO_OFFSET_CUR = new Set(['CLP','COP','CRC','HUF','ISK','IDR','JPY','KRW','PYG','TWD','VND']);
+const CAMP_BUDGET_FIELDS = 'id,name,daily_budget,adsets.limit(100){daily_budget,effective_status}';
+
+// Presupuesto diario de una campaña: el propio (CBO) o la suma de sus conjuntos activos.
+// null si usa presupuesto total (lifetime) o no tiene presupuesto diario.
+function campaignDailyBudget(c, currency) {
+  let minor = toNum(c.daily_budget);
+  if (!minor) {
+    const sets = (c.adsets?.data || []).filter(s => s.effective_status === 'ACTIVE' && toNum(s.daily_budget));
+    minor = sets.length ? sets.reduce((sum, s) => sum + toNum(s.daily_budget), 0) : null;
+  }
+  if (minor == null) return null;
+  return NO_OFFSET_CUR.has(currency) ? minor : minor / 100;
+}
+
+async function fetchActiveCampaigns(accountId, currency) {
   try {
     const r = await apiFetch(`act_${accountId}/campaigns`, {
       effective_status: JSON.stringify(['ACTIVE']),
-      fields: 'id',
+      fields: CAMP_BUDGET_FIELDS,
       limit: 100,
     });
-    return (r.data || []).length;
+    const camps = r.data || [];
+    const budgets = camps.map(c => campaignDailyBudget(c, currency)).filter(b => b != null);
+    return { count: camps.length, dailyBudget: budgets.length ? budgets.reduce((a, b) => a + b, 0) : null };
   } catch {
-    return null;
+    return { count: null, dailyBudget: null };
   }
 }
 
@@ -432,12 +485,12 @@ async function toggleCampaigns(acctId, currency) {
     return;
   }
 
-  content.innerHTML = `<tr><td colspan="7" style="padding:14px 36px;color:var(--g400);font-size:12px;"><span class="spin dark" style="display:inline-block;margin-right:8px;vertical-align:middle"></span>Cargando campañas…</td></tr>`;
+  content.innerHTML = `<tr><td colspan="8" style="padding:14px 36px;color:var(--g400);font-size:12px;"><span class="spin dark" style="display:inline-block;margin-right:8px;vertical-align:middle"></span>Cargando campañas…</td></tr>`;
 
   try {
     const campsRes = await apiFetch(`act_${acctId}/campaigns`, {
       effective_status: JSON.stringify(['ACTIVE']),
-      fields: 'id,name',
+      fields: CAMP_BUDGET_FIELDS,
       limit: 100,
     });
     const camps = campsRes.data || [];
@@ -460,6 +513,7 @@ async function toggleCampaigns(acctId, currency) {
 
     const campData = camps.map(c => ({
       id: c.id, name: c.name,
+      budget: campaignDailyBudget(c, currency),
       curr: currMap[c.id] || null,
       comp: compMap[c.id] || null,
     })).sort((a, b) => (toNum(b.curr?.spend) ?? 0) - (toNum(a.curr?.spend) ?? 0));
@@ -467,14 +521,14 @@ async function toggleCampaigns(acctId, currency) {
     campaignCache.set(acctId, { campData, currency });
     content.innerHTML = buildCampaignRows(campData, currency);
   } catch (e) {
-    content.innerHTML = `<tr><td colspan="7" style="padding:14px 36px;color:var(--red);font-size:12px;">Error: ${esc(e.message)}</td></tr>`;
+    content.innerHTML = `<tr><td colspan="8" style="padding:14px 36px;color:var(--red);font-size:12px;">Error: ${esc(e.message)}</td></tr>`;
   }
 }
 
 function buildCampaignRows(campData, currency) {
-  if (!campData.length) return `<tr><td colspan="7" style="padding:14px 36px;color:var(--g400);font-size:12px;">Sin campañas activas.</td></tr>`;
-  return campData.map(({ id, name, curr, comp }) =>
-    entityRow({ id, name, curr, comp, currency, indent: 20, childLevel: 'ad' })
+  if (!campData.length) return `<tr><td colspan="8" style="padding:14px 36px;color:var(--g400);font-size:12px;">Sin campañas activas.</td></tr>`;
+  return campData.map(({ id, name, budget, curr, comp }) =>
+    entityRow({ id, name, budget, curr, comp, currency, indent: 20, childLevel: 'ad' })
   ).join('');
 }
 
@@ -485,17 +539,17 @@ const LEVELS = {
 const childCache = new Map(); // `${level}:${parentId}` → [{ id, name, subtitle, curr, comp, thumb }]
 
 // Fila de campaña / anuncio. Si tiene childLevel, es clickeable y despliega el siguiente nivel.
-function entityRow({ id, name, subtitle, curr, comp, currency, indent, childLevel, parentId = '', thumb }) {
+function entityRow({ id, name, subtitle, budget, curr, comp, currency, indent, childLevel, parentId = '', thumb }) {
   const cSpend  = toNum(curr?.spend);
   const pSpend  = toNum(comp?.spend);
-  const cImpr   = toNum(curr?.impressions);
-  const pImpr   = toNum(comp?.impressions);
   const cClicks = toNum(curr?.clicks);
   const pClicks = toNum(comp?.clicks);
   const cCtr    = toNum(curr?.ctr);
   const pCtr    = toNum(comp?.ctr);
   const cConv   = extractAction(curr, 'onsite_conversion.messaging_conversation_started_7d');
   const pConv   = extractAction(comp,  'onsite_conversion.messaging_conversation_started_7d');
+  const cCpm    = costPerMsg(cSpend, cConv);
+  const pCpm    = costPerMsg(pSpend, pConv);
   const chevron = childLevel ? `<svg class="chevron" width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>` : '';
   const attrs = childLevel
     ? `id="ent-${id}" class="ent-row" onclick="toggleChildren('${id}', '${childLevel}', '${currency}')"`
@@ -509,8 +563,9 @@ function entityRow({ id, name, subtitle, curr, comp, currency, indent, childLeve
       <td><div class="camp-name-cell" style="padding-left:${indent}px"><span class="camp-dash"></span>${thumbHtml}<div><div style="font-size:12px;font-weight:500;color:var(--black)">${esc(name)}</div>${subHtml}</div>${chevron}</div></td>
       <td></td>
       ${metricCell(cSpend,  pSpend,  v => fmtCur(v, currency), 'spend')}
+      ${budget === undefined ? '<td></td>' : budgetCell(budget, currency)}
       ${metricCell(cConv,   pConv,   v => fmtN(v))}
-      ${metricCell(cImpr,   pImpr,   v => fmtN(v))}
+      ${cCpm == null ? NA_CELL : metricCell(cCpm, pCpm, v => fmtCur(v, currency), 'invert')}
       ${metricCell(cClicks, pClicks, v => fmtN(v))}
       ${metricCell(cCtr,    pCtr,    v => fmtN(v, 2) + '&nbsp;%', 'pp')}
     </tr>`;
@@ -562,7 +617,7 @@ async function toggleChildren(parentId, level, currency) {
   }
   row.classList.add('open');
 
-  const msgRow = (html, color) => `<tr data-parent="${parentId}"><td colspan="7" style="padding:10px 16px 10px ${indent + 16}px;color:${color};font-size:12px;">${html}</td></tr>`;
+  const msgRow = (html, color) => `<tr data-parent="${parentId}"><td colspan="8" style="padding:10px 16px 10px ${indent + 16}px;color:${color};font-size:12px;">${html}</td></tr>`;
   row.insertAdjacentHTML('afterend', msgRow(`<span class="spin dark" style="display:inline-block;margin-right:8px;vertical-align:middle"></span>Cargando…`, 'var(--g400)'));
   const loading = row.nextElementSibling;
 
@@ -730,7 +785,7 @@ async function loadDash() {
         <div class="sk" style="width:80px;height:10px"></div>
       </td>
       <td><div class="sk" style="width:24px;height:24px;border-radius:50%"></div></td>
-      ${Array(5).fill(`
+      ${Array(6).fill(`
         <td class="mc">
           <div class="sk" style="width:68px;height:13px;margin-left:auto;margin-bottom:4px"></div>
           <div class="sk" style="width:38px;height:10px;margin-left:auto"></div>
@@ -749,7 +804,7 @@ async function loadDash() {
     const accounts = acctRes.data || [];
 
     if (!accounts.length) {
-      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--g400);font-size:13px;">No se encontraron cuentas publicitarias activas.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--g400);font-size:13px;">No se encontraron cuentas publicitarias activas.</td></tr>`;
       return;
     }
 
@@ -774,17 +829,16 @@ async function loadDash() {
         ]);
       }
 
-      const [, activeCamps] = await Promise.all([
+      const [, { count: activeCamps, dailyBudget }] = await Promise.all([
         Promise.resolve(null),
-        fetchActiveCampaigns(numId),
+        fetchActiveCampaigns(numId, currency),
       ]);
 
       return {
-        acct, currency, activeCamps,
+        acct, currency, activeCamps, dailyBudget,
         cSpend:  toNum(ins_main?.spend),
         pSpend:  toNum(insComp?.spend),
         cImpr:   toNum(ins_main?.impressions),
-        pImpr:   toNum(insComp?.impressions),
         cClicks: toNum(ins_main?.clicks),
         pClicks: toNum(insComp?.clicks),
         cCtr:    toNum(ins_main?.ctr),
@@ -809,8 +863,10 @@ async function loadDash() {
 
     const chevronSvg = `<svg class="chevron" width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 
-    const rows = data.map(({ acct, currency, activeCamps, cSpend, pSpend, cImpr, pImpr, cClicks, pClicks, cCtr, pCtr, cConv, pConv }) => {
+    const rows = data.map(({ acct, currency, activeCamps, dailyBudget, cSpend, pSpend, cImpr, cClicks, pClicks, cCtr, pCtr, cConv, pConv }) => {
       const hasData = cSpend != null || cImpr != null;
+      const cCpm    = costPerMsg(cSpend, cConv);
+      const pCpm    = costPerMsg(pSpend, pConv);
       const name    = esc(acct.name || acct.id);
       const numId   = acct.id.replace('act_', '');
 
@@ -825,7 +881,7 @@ async function loadDash() {
           ? `<td><div class="camp-cell"><span class="dot green"></span><span class="camp-count">${activeCamps}</span></div>${statusHtml}</td>`
           : `<td><div class="camp-cell"><span class="dot red"></span><span class="camp-none">No tiene campañas activas</span></div>${statusHtml}</td>`;
 
-      const expandRow = `<tr class="expand-row" id="expand-${numId}"><td colspan="7"><table class="inner-table"><tbody id="camp-content-${numId}"></tbody></table></td></tr>`;
+      const expandRow = `<tr class="expand-row" id="expand-${numId}"><td colspan="8"><table class="inner-table"><tbody id="camp-content-${numId}"></tbody></table></td></tr>`;
 
       if (!hasData) {
         return `<tr id="row-${numId}" class="acct-row no-act" onclick="toggleCampaigns('${numId}', '${currency}')">
@@ -839,7 +895,9 @@ async function loadDash() {
             </div>
           </td>
           ${campHtml}
-          <td colspan="5" style="color:var(--g400);font-size:12px;">${noActLabel}</td>
+          <td style="color:var(--g400);font-size:12px;">${noActLabel}</td>
+          ${budgetCell(dailyBudget, currency)}
+          <td colspan="4"></td>
         </tr>${expandRow}`;
       }
 
@@ -855,8 +913,9 @@ async function loadDash() {
         </td>
         ${campHtml}
         ${metricCell(cSpend,  pSpend,  v => fmtCur(v, currency), 'spend')}
+        ${budgetCell(dailyBudget, currency)}
         ${metricCell(cConv,   pConv,   v => fmtN(v))}
-        ${metricCell(cImpr,   pImpr,   v => fmtN(v))}
+        ${cCpm == null ? NA_CELL : metricCell(cCpm, pCpm, v => fmtCur(v, currency), 'invert')}
         ${metricCell(cClicks, pClicks, v => fmtN(v))}
         ${metricCell(cCtr,    pCtr,    v => fmtN(v, 2) + '&nbsp;%', 'pp')}
       </tr>${expandRow}`;
