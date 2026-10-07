@@ -61,7 +61,7 @@
     .auth-err { display:none; background:#fef2f2; color:#7f1d1d; font-size:13px; border-radius:8px; padding:10px 14px; margin-bottom:14px; box-shadow:0 0 0 1px rgba(239,68,68,0.15); line-height:1.5; }
 
     /* Page */
-    .page { max-width:1160px; margin:0 auto; padding:36px 28px 72px; }
+    .page { max-width:1200px; margin:0 auto; padding:36px 28px 72px; }
     .dash-header { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:28px; flex-wrap:wrap; }
     .dash-eyebrow { font-size:11px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:var(--g400); margin-bottom:6px; }
     .dash-title { font-size:24px; font-weight:700; letter-spacing:-1.3px; line-height:1.15; text-wrap:balance; }
@@ -73,7 +73,8 @@
     .alert.err { background:#fef2f2; color:#7f1d1d; box-shadow:0 0 0 1px rgba(239,68,68,0.15); }
 
     /* Table */
-    .table-card { box-shadow:var(--s-card); border-radius:12px; overflow-x:auto; background:var(--white); -webkit-overflow-scrolling:touch; }
+    /* Sin scroll propio: si no entra, scrollea la página entera */
+    .table-card { box-shadow:var(--s-card); border-radius:12px; background:var(--white); width:max-content; min-width:100%; }
     table { width:100%; border-collapse:collapse; min-width:740px; }
     thead th { padding:10px 16px; font-size:10.5px; font-weight:600; letter-spacing:0.07em; text-transform:uppercase; color:var(--g400); background:var(--g100); text-align:left; white-space:nowrap; border-bottom:1px solid rgba(0,0,0,0.05); }
     thead th.r { text-align:right; }
@@ -140,9 +141,6 @@
       .topbar,.page,#auth { padding-left:16px; padding-right:16px; }
       .dash-title { font-size:20px; }
       .dash-actions, .seg { flex-wrap:wrap; }
-
-      /* Sin panel con scroll propio: la tabla mantiene su ancho y scrollea la página */
-      .table-card { overflow-x:visible; width:max-content; min-width:100%; }
     }
     @media (prefers-reduced-motion:reduce) { *,.spin { animation:none !important; transition:none !important; } }
   </style>
