@@ -90,6 +90,7 @@
     .md.up { color:var(--green); }
     .md.dn { color:var(--g400); }
     .md.nt { color:var(--g400); }
+    .md.al { color:var(--red); }
     .na { font-size:12px; color:var(--g400); display:block; text-align:right; }
     .no-act .acct-name { color:var(--g500); font-weight:500; }
 
@@ -314,8 +315,8 @@ function fmtCur(n, cur = 'ARS') {
   }
 }
 
-// colorMode: 'normal' (↑verde ↓gris) | 'invert' (↑gris ↓verde) | 'spend' (gris) | 'pp' (puntos porcentuales absolutos)
-// Verde solo si la métrica mejora; cualquier otro caso en gris.
+// colorMode: 'normal' (↑verde ↓gris) | 'invert' (↑gris ↓verde) | 'spend' (gris, rojo si |Δ|>95%) | 'pp' (puntos porcentuales absolutos)
+// Verde solo si la métrica mejora; cualquier otro caso en gris (salvo la alerta roja de gasto).
 function deltaHtml(curr, prev, colorMode = 'normal') {
   if (curr == null || prev == null) return '';
   const arrowUp = `<svg width="7" height="7" viewBox="0 0 7 7" fill="none"><path d="M3.5 1L6.5 5.5H.5L3.5 1Z" fill="currentColor"/></svg>`;
@@ -333,7 +334,7 @@ function deltaHtml(curr, prev, colorMode = 'normal') {
   const pct = ((curr - prev) / prev) * 100;
   let cls;
   if (colorMode === 'spend') {
-    cls = Math.abs(pct) > 95 ? 'dn' : 'nt';
+    cls = Math.abs(pct) > 95 ? 'al' : 'nt';
   } else if (colorMode === 'invert') {
     cls = Math.abs(pct) < 0.5 ? 'nt' : pct < 0 ? 'up' : 'dn';
   } else {
