@@ -88,7 +88,7 @@
     .mv { font-family:'Geist Mono',monospace; font-size:13px; font-weight:500; font-variant-numeric:tabular-nums; display:block; }
     .md { display:inline-flex; align-items:center; gap:2px; font-size:10.5px; font-weight:500; font-variant-numeric:tabular-nums; margin-top:2px; white-space:nowrap; }
     .md.up { color:var(--green); }
-    .md.dn { color:var(--red); }
+    .md.dn { color:var(--g400); }
     .md.nt { color:var(--g400); }
     .na { font-size:12px; color:var(--g400); display:block; text-align:right; }
     .no-act .acct-name { color:var(--g500); font-weight:500; }
@@ -236,7 +236,7 @@
 
     <div class="note">
       <p><strong>Campañas Activas</strong> — Campañas con <code>effective_status = ACTIVE</code> en este momento.</p>
-      <p><strong>Presupuesto Diario</strong> — Configuración actual de las campañas activas: el presupuesto de la campaña o, si no tiene, la suma de sus conjuntos de anuncios activos. Las campañas con presupuesto total no suman.</p>
+      <p><strong>Presupuesto Diario</strong> — Configuración actual de las campañas activas: el presupuesto de la campaña o, si no tiene, la suma de sus conjuntos de anuncios activos. Las campañas con presupuesto total no suman. En cada anuncio se muestra el presupuesto diario de su conjunto (— si el presupuesto está en la campaña o es total); los anuncios del mismo conjunto lo comparten.</p>
       <p><strong>Conv. Comenzadas</strong> — <code>messaging_conversation_started_7d</code>: conversaciones iniciadas desde el anuncio vía Messenger o Instagram&nbsp;DM.</p>
       <p><strong>Costo por Mensaje</strong> — Importe gastado ÷ conversaciones comenzadas.</p>
       <p id="note-dates"></p>
@@ -314,7 +314,8 @@ function fmtCur(n, cur = 'ARS') {
   }
 }
 
-// colorMode: 'normal' (↑verde ↓rojo) | 'invert' (↑rojo ↓verde) | 'spend' (gris, rojo si |Δ|>95%) | 'pp' (puntos porcentuales absolutos)
+// colorMode: 'normal' (↑verde ↓gris) | 'invert' (↑gris ↓verde) | 'spend' (gris) | 'pp' (puntos porcentuales absolutos)
+// Verde solo si la métrica mejora; cualquier otro caso en gris.
 function deltaHtml(curr, prev, colorMode = 'normal') {
   if (curr == null || prev == null) return '';
   const arrowUp = `<svg width="7" height="7" viewBox="0 0 7 7" fill="none"><path d="M3.5 1L6.5 5.5H.5L3.5 1Z" fill="currentColor"/></svg>`;
@@ -567,13 +568,13 @@ async function fetchChildInsights(parentId, level, since, until) {
   return map;
 }
 
-// Miniatura del creativo y estado de cada anuncio. Si falla, se muestran sin miniatura ni estado.
+// Miniatura, estado y presupuesto diario del conjunto de cada anuncio. Si falla, se muestran sin esos datos.
 async function fetchAdDetails(adIds) {
   const details = {};
   try {
     for (let i = 0; i < adIds.length; i += 50) {
-      const r = await apiFetch('', { ids: adIds.slice(i, i + 50).join(','), fields: 'effective_status,creative{thumbnail_url}' });
-      for (const [id, ad] of Object.entries(r)) details[id] = { thumb: ad.creative?.thumbnail_url || '', active: ad.effective_status === 'ACTIVE' };
+      const r = await apiFetch('', { ids: adIds.slice(i, i + 50).join(','), fields: 'effective_status,creative{thumbnail_url},adset{daily_budget}' });
+      for (const [id, ad] of Object.entries(r)) details[id] = { thumb: ad.creative?.thumbnail_url || '', active: ad.effective_status === 'ACTIVE', adsetBudget: toNum(ad.adset?.daily_budget) };
     }
   } catch (e) {
     console.warn('Miniaturas no disponibles:', e.message);
@@ -623,6 +624,9 @@ async function toggleChildren(parentId, level, currency) {
         for (const it of items) {
           it.thumb  = details[it.id]?.thumb || '';
           it.active = details[it.id]?.active;
+          // Los anuncios no tienen presupuesto propio: se muestra el diario de su conjunto (null si es CBO o total)
+          const minor = details[it.id]?.adsetBudget;
+          it.budget = minor ? (NO_OFFSET_CUR.has(currency) ? minor : minor / 100) : null;
         }
       }
       childCache.set(key, items);
