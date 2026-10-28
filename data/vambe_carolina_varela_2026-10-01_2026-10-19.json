@@ -1,0 +1,350 @@
+{
+ "account_id": "4100755920144855",
+ "since": "2026-10-01",
+ "until": "2026-10-19",
+ "timezone": "America/Santiago",
+ "extracted_at": "2026-10-19",
+ "query": ".claude/skills/reporte-meta-vambe/vambe_query.sql",
+ "rows": [
+  {
+   "week_idx": 0,
+   "ad_id": "120225047588420564",
+   "arrived": 1,
+   "booked": 0,
+   "attended": 0,
+   "no_show": 0,
+   "pending": 0,
+   "cancelled": 0
+  },
+  {
+   "week_idx": 0,
+   "ad_id": "120248249887750327",
+   "arrived": 1,
+   "booked": 0,
+   "attended": 0,
+   "no_show": 0,
+   "pending": 0,
+   "cancelled": 0
+  },
+  {
+   "week_idx": 0,
+   "ad_id": "120248250804760327",
+   "arrived": 62,
+   "booked": 5,
+   "attended": 0,
+   "no_show": 0,
+   "pending": 1,
+   "cancelled": 4
+  },
+  {
+   "week_idx": 0,
+   "ad_id": "120248383170660327",
+   "arrived": 15,
+   "booked": 2,
+   "attended": 0,
+   "no_show": 0,
+   "pending": 0,
+   "cancelled": 2
+  },
+  {
+   "week_idx": 0,
+   "ad_id": "120248710500580327",
+   "arrived": 3,
+   "booked": 0,
+   "attended": 0,
+   "no_show": 0,
+   "pending": 0,
+   "cancelled": 0
+  },
+  {
+   "week_idx": 0,
+   "ad_id": "120248710500600327",
+   "arrived": 7,
+   "booked": 0,
+   "attended": 0,
+   "no_show": 0,
+   "pending": 0,
+   "cancelled": 0
+  },
+  {
+   "week_idx": 0,
+   "ad_id": "120249381861100327",
+   "arrived": 8,
+   "booked": 2,
+   "attended": 2,
+   "no_show": 0,
+   "pending": 0,
+   "cancelled": 0
+  },
+  {
+   "week_idx": 0,
+   "ad_id": "120249394851340327",
+   "arrived": 7,
+   "booked": 1,
+   "attended": 0,
+   "no_show": 0,
+   "pending": 1,
+   "cancelled": 0
+  },
+  {
+   "week_idx": 0,
+   "ad_id": "120249475183160327",
+   "arrived": 1,
+   "booked": 0,
+   "attended": 0,
+   "no_show": 0,
+   "pending": 0,
+   "cancelled": 0
+  },
+  {
+   "week_idx": 0,
+   "ad_id": "120249665747910327",
+   "arrived": 12,
+   "booked": 0,
+   "attended": 0,
+   "no_show": 0,
+   "pending": 0,
+   "cancelled": 0
+  },
+  {
+   "week_idx": 0,
+   "ad_id": "120249802291540327",
+   "arrived": 26,
+   "booked": 8,
+   "attended": 5,
+   "no_show": 0,
+   "pending": 1,
+   "cancelled": 2
+  },
+  {
+   "week_idx": 0,
+   "ad_id": "120249802363920327",
+   "arrived": 39,
+   "booked": 8,
+   "attended": 1,
+   "no_show": 0,
+   "pending": 0,
+   "cancelled": 7
+  },
+  {
+   "week_idx": 0,
+   "ad_id": "120249821968280327",
+   "arrived": 49,
+   "booked": 8,
+   "attended": 3,
+   "no_show": 1,
+   "pending": 1,
+   "cancelled": 3
+  },
+  {
+   "week_idx": 0,
+   "ad_id": "120249875782270327",
+   "arrived": 8,
+   "booked": 1,
+   "attended": 0,
+   "no_show": 0,
+   "pending": 0,
+   "cancelled": 1
+  },
+  {
+   "week_idx": 1,
+   "ad_id": "120248250804760327",
+   "arrived": 60,
+   "booked": 3,
+   "attended": 0,
+   "no_show": 0,
+   "pending": 2,
+   "cancelled": 1
+  },
+  {
+   "week_idx": 1,
+   "ad_id": "120248383170660327",
+   "arrived": 20,
+   "booked": 5,
+   "attended": 0,
+   "no_show": 0,
+   "pending": 1,
+   "cancelled": 4
+  },
+  {
+   "week_idx": 1,
+   "ad_id": "120248710500600327",
+   "arrived": 8,
+   "booked": 2,
+   "attended": 0,
+   "no_show": 2,
+   "pending": 0,
+   "cancelled": 0
+  },
+  {
+   "week_idx": 1,
+   "ad_id": "120249381861100327",
+   "arrived": 9,
+   "booked": 1,
+   "attended": 0,
+   "no_show": 0,
+   "pending": 1,
+   "cancelled": 0
+  },
+  {
+   "week_idx": 1,
+   "ad_id": "120249394851340327",
+   "arrived": 25,
+   "booked": 3,
+   "attended": 2,
+   "no_show": 1,
+   "pending": 0,
+   "cancelled": 0
+  },
+  {
+   "week_idx": 1,
+   "ad_id": "120249475183160327",
+   "arrived": 1,
+   "booked": 0,
+   "attended": 0,
+   "no_show": 0,
+   "pending": 0,
+   "cancelled": 0
+  },
+  {
+   "week_idx": 1,
+   "ad_id": "120249665747910327",
+   "arrived": 26,
+   "booked": 3,
+   "attended": 0,
+   "no_show": 0,
+   "pending": 1,
+   "cancelled": 2
+  },
+  {
+   "week_idx": 1,
+   "ad_id": "120249802291540327",
+   "arrived": 1,
+   "booked": 1,
+   "attended": 0,
+   "no_show": 0,
+   "pending": 0,
+   "cancelled": 1
+  },
+  {
+   "week_idx": 1,
+   "ad_id": "120249802363920327",
+   "arrived": 7,
+   "booked": 1,
+   "attended": 1,
+   "no_show": 0,
+   "pending": 0,
+   "cancelled": 0
+  },
+  {
+   "week_idx": 1,
+   "ad_id": "120249821968280327",
+   "arrived": 6,
+   "booked": 1,
+   "attended": 1,
+   "no_show": 0,
+   "pending": 0,
+   "cancelled": 0
+  },
+  {
+   "week_idx": 1,
+   "ad_id": "120249875782270327",
+   "arrived": 52,
+   "booked": 8,
+   "attended": 3,
+   "no_show": 0,
+   "pending": 1,
+   "cancelled": 4
+  },
+  {
+   "week_idx": 2,
+   "ad_id": "120244787967800327",
+   "arrived": 1,
+   "booked": 0,
+   "attended": 0,
+   "no_show": 0,
+   "pending": 0,
+   "cancelled": 0
+  },
+  {
+   "week_idx": 2,
+   "ad_id": "120248249887750327",
+   "arrived": 1,
+   "booked": 0,
+   "attended": 0,
+   "no_show": 0,
+   "pending": 0,
+   "cancelled": 0
+  },
+  {
+   "week_idx": 2,
+   "ad_id": "120248250804760327",
+   "arrived": 37,
+   "booked": 3,
+   "attended": 0,
+   "no_show": 0,
+   "pending": 2,
+   "cancelled": 1
+  },
+  {
+   "week_idx": 2,
+   "ad_id": "120248383170660327",
+   "arrived": 9,
+   "booked": 1,
+   "attended": 0,
+   "no_show": 0,
+   "pending": 1,
+   "cancelled": 0
+  },
+  {
+   "week_idx": 2,
+   "ad_id": "120248710500600327",
+   "arrived": 3,
+   "booked": 0,
+   "attended": 0,
+   "no_show": 0,
+   "pending": 0,
+   "cancelled": 0
+  },
+  {
+   "week_idx": 2,
+   "ad_id": "120248948168600327",
+   "arrived": 1,
+   "booked": 0,
+   "attended": 0,
+   "no_show": 0,
+   "pending": 0,
+   "cancelled": 0
+  },
+  {
+   "week_idx": 2,
+   "ad_id": "120249381861100327",
+   "arrived": 14,
+   "booked": 2,
+   "attended": 1,
+   "no_show": 0,
+   "pending": 1,
+   "cancelled": 0
+  },
+  {
+   "week_idx": 2,
+   "ad_id": "120249394851340327",
+   "arrived": 25,
+   "booked": 1,
+   "attended": 0,
+   "no_show": 0,
+   "pending": 1,
+   "cancelled": 0
+  },
+  {
+   "week_idx": 2,
+   "ad_id": "120249665747910327",
+   "arrived": 27,
+   "booked": 1,
+   "attended": 0,
+   "no_show": 0,
+   "pending": 1,
+   "cancelled": 0
+  }
+ ]
+}
