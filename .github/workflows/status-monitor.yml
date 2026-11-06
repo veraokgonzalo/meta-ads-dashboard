@@ -20,6 +20,10 @@ jobs:
         with:
           python-version: '3.12'
 
+      # Ubuntu 26 ya no trae los nombres de zona viejos (ej. America/Buenos_Aires)
+      - name: Install tzdata
+        run: pip install tzdata
+
       - name: Run status monitor
         env:
           META_TOKEN: ${{ secrets.META_TOKEN }}
