@@ -17,9 +17,10 @@ NO es el dashboard live (`index.html`); esto produce un archivo estatico bajo `r
 Antes de generar, asegurate de tener (preguntar si falta):
 - **account**: ID de la cuenta (con o sin prefijo `act_`).
 - **month**: mes en formato `YYYY-MM` (ej. `2026-05`).
-- **type**: `mensajes` o `trafico`.
+- **type**: `mensajes`, `trafico` o `leads`.
   - `mensajes` → KPI/charts/tabla sobre **Mensajes** (`onsite_conversion.messaging_conversation_started_7d`).
   - `trafico` → sobre **Clics** (campo `clicks`, todos los clics; consistente con el CTR general).
+  - `leads` → sobre **Leads** (accion `lead`: formularios de Meta + leads del pixel del sitio). Ej. CP Magic Glow.
 
 Si no sabes el ID de la cuenta, listalo con la tool MCP `ads_get_ad_accounts`.
 

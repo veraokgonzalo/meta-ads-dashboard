@@ -18,6 +18,8 @@
     "1372445320756173": {"client": "JM CHEF",                "folder_id": "1TAwRJ7svBEJovcFQMLqHKgyCe5fgJZsq", "name": "JMCHEF"},
     "1326520806129142": {"client": "Tienda de bebidas",      "folder_id": "1gg2OsAOPNW1ed98hnC4x33K_e1Q_Djdo", "name": "TIENDADEBEBIDAS", "note": "misma carpeta META ADS que TABOO"},
     "1559612335672365": {"client": "KIBO Consultora",        "folder_id": "1gn6UUFPNPz-9whqmx58gUQ0jH0qkWy_U", "name": "KIBO"},
-    "1406122094777240": {"client": "ODONTOLOGIA HOTZ",       "folder_id": "1gwTGud58wRho_ENg1QTahUL8OgPLsqs_", "name": "ODONTOLOGIAHOTZ"}
+    "1406122094777240": {"client": "ODONTOLOGIA HOTZ",       "folder_id": "1gwTGud58wRho_ENg1QTahUL8OgPLsqs_", "name": "ODONTOLOGIAHOTZ"},
+    "974043312409707":  {"client": "HMC HUB",                "folder_id": "1iGXGLNbelIzNzRZaIby45EBCmoltyjpR", "name": "HMCHUB"},
+    "788073779518326":  {"client": "CP Magic Glow",          "folder_id": null, "name": "MAGICGLOW", "note": "no se sube a Drive; el informe queda en local"}
   }
 }

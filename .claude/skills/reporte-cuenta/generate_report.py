@@ -12,6 +12,7 @@ Uso:
 
   --type mensajes  -> KPI/charts/tabla sobre "Mensajes" (conversaciones iniciadas)
   --type trafico   -> KPI/charts/tabla sobre "Clics" (campo clicks, todos los clics)
+  --type leads     -> KPI/charts/tabla sobre "Leads" (accion "lead": formularios + pixel)
 """
 import argparse
 import base64
@@ -42,6 +43,7 @@ ACCOUNT_OVERRIDES = {
 }
 
 MSG_ACTION = "onsite_conversion.messaging_conversation_started_7d"
+LEAD_ACTION = "lead"  # leads totales (formularios + pixel del sitio)
 MONTHS_ES = ["", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
              "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
 
@@ -407,7 +409,7 @@ def main():
                     help="IDs de campana separados por coma; filtra el informe a esas campanas")
     ap.add_argument("--label", default=None,
                     help="Texto de periodo a mostrar (ej 'Cyber 2026'); default = mes o rango")
-    ap.add_argument("--type", required=True, choices=["mensajes", "trafico"])
+    ap.add_argument("--type", required=True, choices=["mensajes", "trafico", "leads"])
     ap.add_argument("--name", default=None,
                     help="Nombre a mostrar (si la cuenta no tiene name configurado)")
     ap.add_argument("--logo", default=None,
@@ -443,8 +445,11 @@ def main():
             [{"field": "campaign.id", "operator": "IN", "value": ids}])
 
     is_msg = args.type == "mensajes"
-    metric_label = "Mensajes" if is_msg else "Clics"
-    cost_label = "Costo por mensaje" if is_msg else "Costo por clic"
+    metric_label, cost_label = {
+        "mensajes": ("Mensajes", "Costo por mensaje"),
+        "trafico": ("Clics", "Costo por clic"),
+        "leads": ("Leads", "Costo por lead"),
+    }[args.type]
 
     print(f"  Cuenta act_{acct_id} · {month_label} · tipo {args.type}")
 
@@ -455,6 +460,8 @@ def main():
     currency = acct.get("currency", "ARS")
 
     def metric_of(ins):
+        if args.type == "leads":
+            return extract_action(ins, LEAD_ACTION)
         return extract_action(ins, MSG_ACTION) if is_msg else to_num(ins.get("clicks"))
 
     # 2) Serie diaria

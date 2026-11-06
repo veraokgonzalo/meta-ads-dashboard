@@ -8,8 +8,6 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     /* Impresion / PDF: el tamaño de pagina lo fija html_to_pdf.py. */
@@ -129,29 +127,6 @@
     </section>
 
     <section class="kpis" id="kpi-section"></section>
-
-    <section>
-      <div class="sec-title">Evolución semanal</div>
-      <div class="charts">
-        <div class="chart-card">
-          <h3>Mensajes, agendas y asistencias</h3>
-          <div class="legend">
-            <span><i class="dot" style="background:#171717"></i>Mensajes (Meta)</span>
-            <span><i class="dot" style="background:#0a72ef"></i>Agendas</span>
-            <span><i class="dot" style="background:#16a34a"></i>Asistencias</span>
-          </div>
-          <div class="chart-box"><canvas id="chartVol"></canvas></div>
-        </div>
-        <div class="chart-card">
-          <h3>Costo por agenda y por asistencia</h3>
-          <div class="legend">
-            <span><i class="dot" style="background:#0a72ef"></i>Costo por agenda</span>
-            <span><i class="dot" style="background:#16a34a"></i>Costo por asistencia</span>
-          </div>
-          <div class="chart-box"><canvas id="chartCost"></canvas></div>
-        </div>
-      </div>
-    </section>
 
     <section>
       <div class="sec-title">Qué pasó con los que agendaron</div>
@@ -349,49 +324,11 @@
       ['Asistencias','Personas agendadas cuya hora quedó marcada como asistida.'],
       ['Tasa de asistencia','Asistencias dividido por agendados: qué porcentaje de quienes agendaron asistió.'],
       ['Costo por agenda / por asistencia','Inversión dividida por agendados / por asistencias.'],
-      ['Semanas',`Bloques de 7 días desde el primer día del ${P}. Las agendas y asistencias se asignan a la semana del primer mensaje, para compararlas con la inversión de esa semana.`],
       ['Por anuncio',`Cada persona se asigna al primer anuncio desde el que escribió en el ${P}.`],
     ];
     document.getElementById('glossary').innerHTML = glossary.map(([t,d]) =>
       `<div class="row"><dt>${esc(t)}:</dt> <dd>${esc(d)}</dd></div>`).join('');
 
-    // Charts
-    const W = DATA.weeks;
-    const labels = W.map(w => w.label);
-    const gridCol = '#f0f0f0';
-    Chart.register(ChartDataLabels);
-    Chart.defaults.font.family = 'Geist';
-    Chart.defaults.devicePixelRatio = 3;
-    const axisX = { grid:{display:false}, ticks:{font:{family:'Geist',size:10}, color:'#a3a3a3'} };
-    const axisY = (cb) => ({ beginAtZero:true, grid:{color:gridCol}, ticks:{font:{family:'Geist',size:10}, color:'#a3a3a3', callback:cb} });
-    const dl = (color) => ({ anchor:'end', align:'end', offset:2, color, font:{family:'Geist', size:10, weight:'600'}, formatter:v => v ? fmtN(v) : '' });
-
-    const bar = (label, data, color) => ({ label, data, backgroundColor:color, borderRadius:4, maxBarThickness:26, datalabels:dl(color) });
-    new Chart(document.getElementById('chartVol'), {
-      type:'bar',
-      data:{ labels, datasets:[
-        bar('Mensajes', W.map(w=>w.messages), C.black),
-        bar('Agendas', W.map(w=>w.booked), C.blue),
-        bar('Asistencias', W.map(w=>w.attended), C.green),
-      ]},
-      options:{ responsive:true, maintainAspectRatio:false, layout:{ padding:{ top:22 } },
-        plugins:{ legend:{display:false}, tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${fmtN(c.parsed.y)}`}} },
-        scales:{ x:axisX, y:axisY(v=>fmtN(v)) } },
-    });
-
-    const line = (label, data, color) => ({ label, data, borderColor:color, backgroundColor:color, borderWidth:2, tension:0.3,
-      pointRadius:3, spanGaps:true,
-      datalabels:{ align:'top', offset:4, color, font:{family:'Geist', size:10, weight:'600'}, formatter:v => v==null ? '' : fmtCompactCur(v) } });
-    new Chart(document.getElementById('chartCost'), {
-      type:'line',
-      data:{ labels, datasets:[
-        line('Costo por agenda', W.map(w=>w.cost_booked), C.blue),
-        line('Costo por asistencia', W.map(w=>w.cost_attended), C.green),
-      ]},
-      options:{ responsive:true, maintainAspectRatio:false, layout:{ padding:{ top:22, left:8, right:18 } },
-        plugins:{ legend:{display:false}, tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${fmtCur0(c.parsed.y)}`}} },
-        scales:{ x:{...axisX, offset:true}, y:axisY(v=>fmtCompactCur(v)) } },
-    });
   </script>
 </body>
 </html>
