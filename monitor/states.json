@@ -62,7 +62,8 @@
   },
   "act_720469197032249": {
     "status": 1,
-    "name": "Vsm explorers"
+    "name": "Vsm explorers",
+    "no_spend_alerted": "2026-11-10"
   },
   "act_1055891816639430": {
     "status": 1,
