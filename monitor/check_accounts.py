@@ -17,6 +17,7 @@ from zoneinfo import ZoneInfo
 
 API_BASE = "https://graph.facebook.com/v21.0"
 STATES_FILE = Path(__file__).parent / "states.json"
+NAMES_FILE = Path(__file__).parent.parent / "account_names.json"  # nombres que usamos en los informes
 
 STATUS_NAMES = {
     1:   "ACTIVE",
@@ -214,6 +215,7 @@ def main():
     accounts = fetch_accounts(token)
     print(f"  {len(accounts)} accounts found")
 
+    names = json.loads(NAMES_FILE.read_text(encoding="utf-8"))
     prev_states = load_states()
     is_first_run = not prev_states
     curr_states = {}
@@ -222,7 +224,7 @@ def main():
     for acct in accounts:
         acct_id    = acct["id"]
         curr_status = int(acct["account_status"])
-        name       = acct.get("name") or acct_id
+        name       = names.get(acct_id.replace("act_", "")) or acct.get("name") or acct_id
         curr_states[acct_id] = {"status": curr_status, "name": name}
         # Conservar el último día en que se avisó "sin gasto" para no repetir la alerta
         if (prev_states.get(acct_id) or {}).get("no_spend_alerted"):

@@ -36,11 +36,13 @@ OUT_DIR = PROJECT_DIR / "reports"
 # Overrides por cuenta (ID sin 'act_'): nombre a mostrar y/o logo (archivo en assets/).
 # Se aplican salvo que se pasen --name / --logo explicitos en la CLI. Sirve para
 # cuentas sin 'name' en Meta o con marca propia (ej. Reloaded).
+# Los nombres salen de account_names.json (raiz del proyecto), compartido con el dashboard.
 ACCOUNT_OVERRIDES = {
-    "1372445320756173": {"name": "JMChef"},                       # sin nombre en Meta
-    "3314437138860175": {"name": "CI Textil"},                    # sin nombre util en Meta
     "4100755920144855": {"logo": "logo_realoaded.png"},           # Carolina Varela -> Reloaded
 }
+for _id, _name in json.loads((PROJECT_DIR / "account_names.json").read_text(encoding="utf-8")).items():
+    if not _id.startswith("_"):
+        ACCOUNT_OVERRIDES.setdefault(_id, {})["name"] = _name
 
 MSG_ACTION = "onsite_conversion.messaging_conversation_started_7d"
 LEAD_ACTION = "lead"  # leads totales (formularios + pixel del sitio)

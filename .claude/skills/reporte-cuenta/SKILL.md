@@ -166,11 +166,14 @@ puntuales sin pasar `--name`/`--logo` en cada corrida:
 
 ```python
 ACCOUNT_OVERRIDES = {
-    "1372445320756173": {"name": "JMChef"},              # sin nombre en Meta
-    "3314437138860175": {"name": "CI Textil"},           # sin nombre util en Meta
     "4100755920144855": {"logo": "logo_realoaded.png"},  # Carolina Varela -> Reloaded
 }
 ```
+
+Los **nombres** no van aca: salen de `account_names.json` (raiz del proyecto), que
+comparten el dashboard, este script, el reporte Meta+Vambe, el quincenal y el monitor.
+Para corregir el nombre de una cuenta (ej. `290990484008212` -> "VSM Tradicional",
+aunque en Meta figure "Juan Alfaro"), editar solo ese archivo.
 
 Precedencia: flag CLI (`--name`/`--logo`) > override de la cuenta > default
 (nombre de Meta / logo trasmedia). Para sumar una cuenta, agregá su ID con `name`

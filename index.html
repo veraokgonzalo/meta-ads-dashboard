@@ -110,6 +110,9 @@
     .acct-row.open .chevron { transform:rotate(180deg); }
     .expand-row { display:none; }
     .expand-row.open { display:table-row; }
+    /* Cuentas sin actividad: colapsadas en una sola fila */
+    #tbody:not(.show-noact) .no-act-item { display:none; }
+    #tbody.show-noact .noact-group .chevron { transform:rotate(180deg); }
     .expand-row > td { padding:0; background:var(--g100); border-bottom:1px solid rgba(0,0,0,0.05); }
     .inner-table { width:100%; border-collapse:collapse; }
     .inner-table tr { border-bottom:1px solid rgba(0,0,0,0.03); }
@@ -794,6 +797,11 @@ async function loadDash() {
 
     const accounts = acctRes.data || [];
 
+    // Nombres que usamos en los informes (account_names.json), en vez del nombre de Meta
+    let NAMES = {};
+    try { NAMES = await (await fetch('account_names.json', { cache: 'no-store' })).json(); } catch (e) {}
+    accounts.forEach(a => { const n = NAMES[a.id.replace('act_', '')]; if (n) a.name = n; });
+
     if (!accounts.length) {
       tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--g400);font-size:13px;">No se encontraron cuentas publicitarias activas.</td></tr>`;
       return;
@@ -875,7 +883,7 @@ async function loadDash() {
       const expandRow = `<tr class="expand-row" id="expand-${numId}"><td colspan="8"><table class="inner-table"><tbody id="camp-content-${numId}"></tbody></table></td></tr>`;
 
       if (!hasData) {
-        return `<tr id="row-${numId}" class="acct-row no-act" onclick="toggleCampaigns('${numId}', '${currency}')">
+        return `<tr id="row-${numId}" class="acct-row no-act no-act-item" onclick="toggleCampaigns('${numId}', '${currency}')">
           <td>
             <div style="display:flex;align-items:center;gap:4px">
               <div>
@@ -889,7 +897,7 @@ async function loadDash() {
           <td style="color:var(--g400);font-size:12px;">${noActLabel}</td>
           ${budgetCell(dailyBudget, currency)}
           <td colspan="4"></td>
-        </tr>${expandRow}`;
+        </tr>${expandRow.replace('class="expand-row"', 'class="expand-row no-act-item"')}`;
       }
 
       return `<tr id="row-${numId}" class="acct-row" onclick="toggleCampaigns('${numId}', '${currency}')">
@@ -912,7 +920,21 @@ async function loadDash() {
       </tr>${expandRow}`;
     });
 
-    tbody.innerHTML = rows.join('');
+    const actRows   = rows.filter(r => !r.includes('no-act-item'));
+    const noActRows = rows.filter(r => r.includes('no-act-item'));
+    const groupRow  = noActRows.length ? `<tr class="acct-row no-act noact-group" onclick="document.getElementById('tbody').classList.toggle('show-noact')">
+        <td colspan="8">
+          <div style="display:flex;align-items:center;gap:4px">
+            <div>
+              <div class="acct-name">${noActRows.length} cuentas sin actividad</div>
+              <div class="acct-id">${noActLabel} · clic para ver</div>
+            </div>
+            ${chevronSvg}
+          </div>
+        </td>
+      </tr>` : '';
+    tbody.classList.remove('show-noact');
+    tbody.innerHTML = actRows.join('') + groupRow + noActRows.join('');
 
     const active = rows.filter(r => !r.includes(noActLabel)).length;
     document.getElementById('dash-sub').textContent =

@@ -182,7 +182,8 @@ def ad_type_of(objective: str, messages: float, clicks: float) -> str:
 
 def fetch_account(acct, since, until, token, with_thumbs):
     acct_id = acct["id"].replace("act_", "")
-    name = acct.get("name") or f"act_{acct_id}"
+    names = json.loads((PROJECT_DIR / "account_names.json").read_text(encoding="utf-8"))
+    name = names.get(acct_id) or acct.get("name") or f"act_{acct_id}"
     currency = acct.get("currency", "ARS")
     time_range = json.dumps({"since": since, "until": until})
     print(f"  · {name} (act_{acct_id})")
